@@ -1,6 +1,8 @@
 package me.lifegrep.heartbasics;
 
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -19,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
     HashMap<String, List<String>> listDetail;
     List<String> listTitle;
     ExpandableListAdapter listAdapter;
+    TemporaryStorageWriter writer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        writer = new TemporaryStorageWriter(this, "temp.txt");
 
         ExpandableListView listView = (ExpandableListView) findViewById(R.id.expandableListView);
         listDetail = ExpandableListFixedDataSource.getData();
@@ -39,9 +44,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onGroupExpand(int groupPosition) {
-                Toast.makeText(getApplicationContext(),
-                        listTitle.get(groupPosition) + " List Expanded.",
-                        Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -49,10 +51,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onGroupCollapse(int groupPosition) {
-                Toast.makeText(getApplicationContext(),
-                        listTitle.get(groupPosition) + " List Collapsed.",
-                        Toast.LENGTH_SHORT).show();
-
             }
         });
 
@@ -60,28 +58,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int groupPosition, int childPosition, long id) {
-                Toast.makeText(
-                        getApplicationContext(),
-                        listTitle.get(groupPosition)
-                                + " -> "
-                                + listDetail.get(
-                                listTitle.get(groupPosition)).get(
-                                childPosition), Toast.LENGTH_SHORT
-                ).show();
+                writer.saveData(listDetail.get(listTitle.get(groupPosition)).get(childPosition));
                 return false;
             }
         });
 
-    }
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
+        FloatingActionButton fabinput = (FloatingActionButton) findViewById(R.id.fabinput);
+        fabinput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String data = writer.getData();
+                if (!data.isEmpty()) {
+                    Toast.makeText(getApplicationContext(), data, Toast.LENGTH_LONG).show();
+                } else {
+                    String text = "No records";
+                    Snackbar.make(view, text, Snackbar.LENGTH_SHORT).setAction("Action", null).show();
+                }
+            }
+        });
+
+
+        FloatingActionButton fabdelete = (FloatingActionButton) findViewById(R.id.fabdelete);
+        fabdelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String text = "Erasing content";
+                Snackbar.make(view, text, Snackbar.LENGTH_SHORT).setAction("Action", null).show();
+                writer.eraseContents();
+            }
+        });
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -104,4 +112,5 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
 }
