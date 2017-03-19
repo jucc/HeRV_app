@@ -1,4 +1,4 @@
-package me.lifegrep.heartbasics;
+package me.lifegrep.heart;
 
         import java.util.HashMap;
         import java.util.List;
@@ -42,10 +42,10 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter {
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = layoutInflater.inflate(R.layout.list_item, null);
+            convertView = layoutInflater.inflate(me.lifegrep.heart.R.layout.list_item, null);
         }
         TextView expandedListTextView = (TextView) convertView
-                .findViewById(R.id.expandedListItem);
+                .findViewById(me.lifegrep.heart.R.id.expandedListItem);
         expandedListTextView.setText(expandedListText);
         return convertView;
     }
@@ -78,10 +78,10 @@ public class CustomExpandableListAdapter extends BaseExpandableListAdapter {
         if (convertView == null) {
             LayoutInflater layoutInflater = (LayoutInflater) this.context.
                     getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = layoutInflater.inflate(R.layout.list_group, null);
+            convertView = layoutInflater.inflate(me.lifegrep.heart.R.layout.list_group, null);
         }
         TextView listTitleTextView = (TextView) convertView
-                .findViewById(R.id.listTitle);
+                .findViewById(me.lifegrep.heart.R.id.listTitle);
         listTitleTextView.setTypeface(null, Typeface.BOLD);
         listTitleTextView.setText(listTitle);
         return convertView;

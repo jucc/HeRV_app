@@ -1,4 +1,9 @@
-package me.lifegrep.heartbasics;
+/**
+ * Lifegrep scratch writer
+ * Heartbeats and daily events are written in real time to a json scratch file in internal storage.
+ * After sometime, these events/heartbeats are uploaded to a server and the scratch cleaned.
+ */
+package me.lifegrep.heart;
 
 import android.content.Context;
 
@@ -12,12 +17,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 
-public class TemporaryStorageWriter {
+public class ScratchWriter {
 
     Context context;
     String filename;
 
-    public TemporaryStorageWriter(Context context, String filename) {
+    public ScratchWriter(Context context, String filename) {
         this.context = context;
         this.filename = context.getFilesDir().getPath() + "/" + filename;
     }

@@ -1,11 +1,19 @@
-package me.lifegrep.heartbasics;
+/**
+ * Lifegrep daily activities list
+ * Juliana Cavalcanti - 2017/03
+ */
+package me.lifegrep.heart;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 
-public class ExpandableListFixedDataSource {
+/**
+ * TODO instead of a fixed list, read from database and allow the user to create custom activities
+ */
+
+public class DailyActivitiesList {
 
     public static HashMap<String, List<String>> getData() {
 

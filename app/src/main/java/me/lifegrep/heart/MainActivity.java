@@ -1,4 +1,4 @@
-package me.lifegrep.heartbasics;
+package me.lifegrep.heart;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -21,21 +21,21 @@ public class MainActivity extends AppCompatActivity {
     HashMap<String, List<String>> listDetail;
     List<String> listTitle;
     ExpandableListAdapter listAdapter;
-    TemporaryStorageWriter writer;
+    ScratchWriter writer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(me.lifegrep.heart.R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(me.lifegrep.heart.R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        writer = new TemporaryStorageWriter(this, "temp.txt");
+        writer = new ScratchWriter(this, "temp.txt");
 
-        ExpandableListView listView = (ExpandableListView) findViewById(R.id.expandableListView);
-        listDetail = ExpandableListFixedDataSource.getData();
+        ExpandableListView listView = (ExpandableListView) findViewById(me.lifegrep.heart.R.id.expandableListView);
+        listDetail = DailyActivitiesList.getData();
         listTitle = new ArrayList<String>(listDetail.keySet());
         listAdapter = new CustomExpandableListAdapter(this, listTitle, listDetail);
         listView.setAdapter(listAdapter);
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        FloatingActionButton fabinput = (FloatingActionButton) findViewById(R.id.fabinput);
+        FloatingActionButton fabinput = (FloatingActionButton) findViewById(me.lifegrep.heart.R.id.fabinput);
         fabinput.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        FloatingActionButton fabdelete = (FloatingActionButton) findViewById(R.id.fabdelete);
+        FloatingActionButton fabdelete = (FloatingActionButton) findViewById(me.lifegrep.heart.R.id.fabdelete);
         fabdelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(me.lifegrep.heart.R.menu.menu_main, menu);
         return true;
     }
 
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == me.lifegrep.heart.R.id.action_settings) {
             return true;
         }
 

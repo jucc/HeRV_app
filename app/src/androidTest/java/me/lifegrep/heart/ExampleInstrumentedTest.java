@@ -1,4 +1,4 @@
-package me.lifegrep.heartbasics;
+package me.lifegrep.heart;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
