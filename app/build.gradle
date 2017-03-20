@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "me.lifegrep.heartbasics"
+        applicationId "me.lifegrep.heart"
         minSdkVersion 18
         targetSdkVersion 25
         versionCode 1
