@@ -59,7 +59,9 @@ public class ActivitySelectionActivity extends AppCompatActivity {
             @Override
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int groupPosition, int childPosition, long id) {
-                writer.saveData(listDetail.get(listTitle.get(groupPosition)).get(childPosition));
+                String data = listDetail.get(listTitle.get(groupPosition)).get(childPosition);
+                writer.saveData(data);
+                Toast.makeText(getApplicationContext(), data, Toast.LENGTH_LONG).show();
                 return false;
             }
         });

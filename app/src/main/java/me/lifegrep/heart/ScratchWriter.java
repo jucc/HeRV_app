@@ -6,6 +6,7 @@
 package me.lifegrep.heart;
 
 import android.content.Context;
+import android.os.Environment;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,7 +25,8 @@ public class ScratchWriter {
 
     public ScratchWriter(Context context, String filename) {
         this.context = context;
-        this.filename = context.getFilesDir().getPath() + "/" + filename;
+        //this.filename = context.getFilesDir().getPath() + "/" + filename;
+        this.filename = Environment.getExternalStorageDirectory().getPath()+"/"+"activities.txt";
     }
 
 
