@@ -33,7 +33,7 @@ public class ActivitySelectionActivity extends AppCompatActivity {
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
 
-        writer = new ScratchWriter(this, "temp.txt");
+        writer = new ScratchWriter(this, "activities.txt");
 
         ExpandableListView listView = (ExpandableListView) findViewById(R.id.expandableListView);
         listDetail = DailyActivitiesList.getData();

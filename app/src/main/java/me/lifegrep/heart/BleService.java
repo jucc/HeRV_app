@@ -30,7 +30,10 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Calendar;
+
 
 import me.lifegrep.heart.sensor.BleSensor;
 import me.lifegrep.heart.sensor.BleSensors;
@@ -62,6 +65,8 @@ public class BleService extends Service {
     public final static String EXTRA_CHARACTERISTIC_UUID = INTENT_PREFIX+".EXTRA_CHARACTERISTIC_UUI";
     public final static String EXTRA_DATA = INTENT_PREFIX+".EXTRA_DATA";
     public final static String EXTRA_TEXT = INTENT_PREFIX+".EXTRA_TEXT";
+
+    private static SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     // Implements callback methods for GATT events that the app cares about.
     // For example, connection change and services discovered.
@@ -143,6 +148,12 @@ public class BleService extends Service {
             final String text = sensor.getDataString();
             intent.putExtra(EXTRA_TEXT, text);
             sendBroadcast(intent);
+            //TODO create a separate service to store data
+            ScratchWriter writer = new ScratchWriter(this, "rr.txt");
+            float[] data = (float[])sensor.getData();
+            for(int i = 1; i < data.length; i++) {
+                writer.saveData(String.valueOf(data[i]) + ", " + format1.format(Calendar.getInstance().getTime()));
+            }
         } else {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
@@ -239,8 +250,7 @@ public class BleService extends Service {
         }
 
         // Previously connected device.  Try to reconnect.
-        if (deviceAddress != null && address.equals(deviceAddress)
-                && gatt != null) {
+        if (deviceAddress != null && address.equals(deviceAddress) && gatt != null) {
             Log.d(TAG, "Trying to use an existing BluetoothGatt for connection.");
             if (gatt.connect()) {
                 connectionState = STATE_CONNECTING;

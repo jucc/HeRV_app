@@ -84,6 +84,13 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
 		return "heart rate=" + data[0] + "\ninterval=" + data[1];
 	}
 
+	/**
+	 * @return result =  array of length >= 2 where:
+	 * - the first element (result[0]) is the heart rate;
+	 * - if the second element (result[1]) == -1, there is no RR interval;
+	 * - else, every element from 1 to n are RR intervals
+	 * //TODO create a decent struct to store this
+	 */
 	@Override
 	public float[] parse(BluetoothGattCharacteristic c) {
 
@@ -110,8 +117,7 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
 		return result;
 	}
 
-	private static double extractHeartRate(
-			BluetoothGattCharacteristic characteristic) {
+	private static double extractHeartRate( BluetoothGattCharacteristic characteristic) {
 
 		int flag = characteristic.getProperties();
 		Log.d(TAG, "Heart rate flag: " + flag);
@@ -143,15 +149,14 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
 				Log.d(TAG, "Heart rate sensor contact is OFF");
 			}
 		} else  {
-			Log.d(TAG, "Heart rate sensor contact info doesn't exists");
+			Log.d(TAG, "Heart rate sensor contact info doesn't exist");
 		}
 		//final int heartRate = characteristic.getIntValue(format, 1);
 		//Log.d(TAG, String.format("Received heart rate: %d", heartRate));
 		return 0.0d;
 	}
 	
-	private static double extractEnergyExpended(
-			BluetoothGattCharacteristic characteristic) {
+	private static double extractEnergyExpended( BluetoothGattCharacteristic characteristic) {
 
 		int flag = characteristic.getProperties();
 		int format = -1;
@@ -159,15 +164,14 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
 		if ((flag & 0x08) != 0) {
 			Log.d(TAG, "Heart rate energy calculation exists.");
 		} else {
-			Log.d(TAG, "Heart rate energy calculation doesn't exists.");
+			Log.d(TAG, "Heart rate energy calculation doesn't exist.");
 		}
 		//final int heartRate = characteristic.getIntValue(format, 1);
 		//Log.d(TAG, String.format("Received heart rate: %d", heartRate));
 		return 0.0d;
 	}
 	
-	private static Integer[] extractBeatToBeatInterval(
-			BluetoothGattCharacteristic characteristic) {
+	private static Integer[] extractBeatToBeatInterval( BluetoothGattCharacteristic characteristic) {
 
         int flag = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
         int format = -1;

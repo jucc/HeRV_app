@@ -26,7 +26,7 @@ public class ScratchWriter {
     public ScratchWriter(Context context, String filename) {
         this.context = context;
         //this.filename = context.getFilesDir().getPath() + "/" + filename;
-        this.filename = Environment.getExternalStorageDirectory().getPath()+"/"+"activities.txt";
+        this.filename = Environment.getExternalStorageDirectory().getPath()+"/"+filename;
     }
 
 
