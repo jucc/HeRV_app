@@ -1,5 +1,10 @@
 package me.lifegrep.heart;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,93 +13,79 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ExpandableListAdapter;
-import android.widget.ExpandableListView;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
+import android.widget.ToggleButton;
 
 public class MainActivity extends AppCompatActivity {
 
-    HashMap<String, List<String>> listDetail;
-    List<String> listTitle;
-    ExpandableListAdapter listAdapter;
-    ScratchWriter writer;
+    Switch heartSwitch;
+    TextView heartbeat;
+    private BluetoothAdapter blueAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-        setContentView(me.lifegrep.heart.R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(me.lifegrep.heart.R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setContentView(R.layout.activity_main);
+        heartSwitch = (Switch) findViewById(R.id.sw_heart);
+        heartbeat = (TextView) findViewById(R.id.tv_heartbeat);
 
-        writer = new ScratchWriter(this, "temp.txt");
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            heartSwitch.setEnabled(false);
+            heartbeat.setText(R.string.text_monitornobluetooth);
+        }
+    }
 
-        ExpandableListView listView = (ExpandableListView) findViewById(me.lifegrep.heart.R.id.expandableListView);
-        listDetail = DailyActivitiesList.getData();
-        listTitle = new ArrayList<String>(listDetail.keySet());
-        listAdapter = new CustomExpandableListAdapter(this, listTitle, listDetail);
-        listView.setAdapter(listAdapter);
+    /**
+     * Listener for fab_start
+     */
+    public void startActivity(View view) {
+        String text = "Starting";
+        Snackbar.make(view, text, Snackbar.LENGTH_SHORT).setAction("Action", null).show();
 
-        listView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
+        Intent intent_scan = new Intent(this, ActivitySelectionActivity.class);
+        startActivity(intent_scan);
+    }
 
-            @Override
-            public void onGroupExpand(int groupPosition) {
-            }
-        });
+    /**
+     * Listener for sw_heart
+     */
+    public void toggleHeartMonitor(View view) {
+        if (heartSwitch.isChecked()) {
 
-        listView.setOnGroupCollapseListener(new ExpandableListView.OnGroupCollapseListener() {
+            // enable bluetooth if it is not already enabled
 
-            @Override
-            public void onGroupCollapse(int groupPosition) {
-            }
-        });
-
-        listView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView parent, View v,
-                                        int groupPosition, int childPosition, long id) {
-                writer.saveData(listDetail.get(listTitle.get(groupPosition)).get(childPosition));
-                return false;
-            }
-        });
-
-
-        FloatingActionButton fabinput = (FloatingActionButton) findViewById(me.lifegrep.heart.R.id.fabinput);
-        fabinput.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String data = writer.getData();
-                if (!data.isEmpty()) {
-                    Toast.makeText(getApplicationContext(), data, Toast.LENGTH_LONG).show();
-                } else {
-                    String text = "No records";
-                    Snackbar.make(view, text, Snackbar.LENGTH_SHORT).setAction("Action", null).show();
+            int REQUEST_ENABLE_BT = 1;
+            final BluetoothManager blueManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            blueAdapter = blueManager.getAdapter();
+            if (blueAdapter == null) {
+                heartbeat.setText(R.string.text_monitornobluetooth);
+            } else {
+                heartbeat.setText(R.string.text_monitorconnecting);
+                if (!blueAdapter.isEnabled()) {
+                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
                 }
             }
-        });
 
+            // find the device
 
-        FloatingActionButton fabdelete = (FloatingActionButton) findViewById(me.lifegrep.heart.R.id.fabdelete);
-        fabdelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String text = "Erasing content";
-                Snackbar.make(view, text, Snackbar.LENGTH_SHORT).setAction("Action", null).show();
-                writer.eraseContents();
-            }
-        });
+            Intent intent_scan = new Intent(this, DeviceScanActivity.class);
+            startActivity(intent_scan);
 
+        } else {
+            heartbeat.setText(R.string.text_monitoroff);
+        }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(me.lifegrep.heart.R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -106,11 +97,10 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == me.lifegrep.heart.R.id.action_settings) {
+        if (id == R.id.action_settings) {
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
-
 }
