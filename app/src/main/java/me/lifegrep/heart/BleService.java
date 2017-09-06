@@ -31,6 +31,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Calendar;
 
@@ -152,10 +153,16 @@ public class BleService extends Service {
             sendBroadcast(intent);
             //TODO create a separate service to store data
             if (writer != null) {
+                List<Integer> intervals = new ArrayList<Integer>();
+                //TODO is there a more efficient way to convert this?
                 float[] data = (float[]) sensor.getData();
                 for (int i = 1; i < data.length; i++) {
-                    writer.saveData(String.valueOf(data[i]) + ", " + formatDateDB.format(Calendar.getInstance().getTime()));
+                    intervals.add((int)data[i]);
                 }
+                //TODO what if more than one event returns in the same second?
+                //TODO get user ID from main activity screen
+                Heartbeat beat = new Heartbeat(0, intervals, Calendar.getInstance().getTime());
+                writer.saveData(beat.toString() + ",");
             } else {
                 Log.w(TAG, "Scratch writer not available, RR not recorded");
             }
@@ -235,8 +242,13 @@ public class BleService extends Service {
             return false;
         }
 
+        /*
+        creates a file to store a json with a list of heartbeats (JSONObjects) in order to later
+        send them to the server as a bundle, reducing internet usage and connection dependency
+        */
         String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-        writer = new ScratchWriter(this, "rr" + dt + ".csv");
+        writer = new ScratchWriter(this, "rr" + dt + ".json");
+        writer.saveData("{\"beats\": [");
 
         return true;
     }
@@ -303,6 +315,10 @@ public class BleService extends Service {
     public void close() {
         if (gatt == null) {
             return;
+        }
+        if (writer != null) {
+            //TODO erase last comma
+            writer.saveData("]};");
         }
         gatt.close();
         gatt = null;

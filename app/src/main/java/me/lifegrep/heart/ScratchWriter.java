@@ -21,12 +21,13 @@ import java.io.IOException;
 public class ScratchWriter {
 
     Context context;
-    String filename;
+    String filename, dirname;
 
     public ScratchWriter(Context context, String filename) {
         this.context = context;
         //this.filename = context.getFilesDir().getPath() + "/" + filename;
         this.filename = Environment.getExternalStorageDirectory().getPath()+"/"+filename;
+        this.dirname = "hrv";
     }
 
 
@@ -34,6 +35,7 @@ public class ScratchWriter {
         FileWriter fw = null;
         BufferedWriter bw = null;
         try {
+            //TODO open file only once and close at the end
             fw = new FileWriter(filename, true);
             bw = new BufferedWriter(fw);
             bw.write(data + "\n");
