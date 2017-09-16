@@ -100,15 +100,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
-            android:paddingRight="10dp">
-        <Button
-            android:id="@+id/demo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_demo"
-            android:clickable="false"
-            android:focusable="false" />
-     </LinearLayout>
+            android:paddingRight="10dp"></LinearLayout>
      <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -124,5 +116,5 @@
             android:id="@+id/gatt_services_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:groupIndicator="@null"/> 
+            android:groupIndicator="@null"/>
 </LinearLayout>

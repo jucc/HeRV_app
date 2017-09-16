@@ -308,16 +308,12 @@ public class DeviceServicesActivity extends Activity {
 		if (gattServiceAdapter == null)
 			return false;
 
-		final BluetoothGattCharacteristic characteristic = gattServiceAdapter
-				.getHeartRateCharacteristic();
+		final BluetoothGattCharacteristic characteristic = gattServiceAdapter.getHeartRateCharacteristic();
 		Log.d(TAG,"characteristic: " + characteristic);
-		final BleSensor<?> sensor = BleSensors.getSensor(characteristic
-				.getService()
-				.getUuid()
-				.toString());
+		final BleSensor<?> sensor = BleSensors.getSensor(characteristic.getService().getUuid().toString());
 
 		if (heartRateSensor != null)
-			bleService.enableSensor(heartRateSensor, false);
+		    bleService.enableSensor(heartRateSensor, false);
 
 		if (sensor == null) {
 			bleService.readCharacteristic(characteristic);

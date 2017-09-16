@@ -36,7 +36,6 @@ public class Heartbeat {
     /**
      * Converts the event to the json format expected for heartbeats
      * @return JSON = { "dt": dt, "user": userID, "values": [RR1, .. RRN] }
-     * @throws JSONException
      */
     public JSONObject toJson () throws JSONException {
 
@@ -44,7 +43,9 @@ public class Heartbeat {
         JSONObject event = new JSONObject();
 
         // build event with dt, type and value(s)
-        event.put("user", this.user);
+        if (this.user != null) {
+            event.put("user", this.user);
+        }
         event.put("dt", new SimpleDateFormat(fmtDateDB).format(this.getDt()));
 
         JSONArray rr = new JSONArray();
@@ -56,6 +57,23 @@ public class Heartbeat {
         return event;
     }
 
+    /**
+     * Converts the event to the csv format expected for heartbeats
+     * @return dt, RR1 \n ... \n dt, RRN
+     */
+    public String toCSV() {
+        StringBuilder sb = new StringBuilder();
+        String dt = new SimpleDateFormat(fmtDateDB).format(this.getDt());
+        for (int i : this.getIntervals()) {
+            sb.append(dt);
+            sb.append(", ");
+            sb.append(i);
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
+
     @Override
     public String toString() {
         try {
@@ -65,6 +83,7 @@ public class Heartbeat {
             return "bad JSON format";
         }
     }
+
 
     public Integer getUser() { return user; }
 
