@@ -12,7 +12,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_launcher_1"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -20,7 +20,7 @@
 
         <!-- app starting activity -->
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -29,13 +29,13 @@
             </intent-filter>
         </activity>
         <!-- search for devices !-->
-        <activity android:name=".DeviceScanActivity"/>
+        <activity android:name=".activities.DeviceScanActivity"/>
         <!-- show device details !-->
-        <activity android:name=".DeviceServicesActivity"/>
+        <activity android:name=".activities.DeviceServicesActivity"/>
         <!-- allow user to log current activity !-->
-        <activity android:name=".ActivitySelectionActivity"/>
+        <activity android:name=".activities.ActivitySelectionActivity"/>
         <!-- connect to BLE (polar H7) device -->
-        <service android:name=".BleService" android:enabled="true"/>
+        <service android:name=".services.BleService" android:enabled="true"/>
 
     </application>
 

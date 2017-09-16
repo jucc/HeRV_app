@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.UUID;
 
 import me.lifegrep.heart.R;
-import me.lifegrep.heart.info.BleInfoService;
-import me.lifegrep.heart.info.BleInfoServices;
+import me.lifegrep.heart.sensor.info.BleInfoService;
+import me.lifegrep.heart.sensor.info.BleInfoServices;
 import me.lifegrep.heart.sensor.BleHeartRateSensor;
 import me.lifegrep.heart.sensor.BleSensor;
 import me.lifegrep.heart.sensor.BleSensors;

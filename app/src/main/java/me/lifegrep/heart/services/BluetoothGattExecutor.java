@@ -1,4 +1,4 @@
-package me.lifegrep.heart;
+package me.lifegrep.heart.services;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.lifegrep.heart;
+package me.lifegrep.heart.activities;
 
 
 import android.app.Activity;
@@ -166,6 +166,7 @@ public class DeviceScanActivity extends ListActivity {
         final Intent intent = new Intent(this, DeviceServicesActivity.class);
         intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_NAME, device.getName());
         intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+
         startActivity(intent);
     }
 

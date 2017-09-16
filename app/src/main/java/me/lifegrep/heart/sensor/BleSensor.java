@@ -8,7 +8,7 @@ import android.util.Log;
 
 import java.util.UUID;
 
-import me.lifegrep.heart.BluetoothGattExecutor;
+import me.lifegrep.heart.services.BluetoothGattExecutor;
 
 
 /**

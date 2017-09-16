@@ -1,4 +1,4 @@
-package me.lifegrep.heart;
+package me.lifegrep.heart.model;
 
 import org.json.JSONArray;
 import org.json.JSONException;

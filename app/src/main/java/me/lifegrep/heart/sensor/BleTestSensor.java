@@ -1,6 +1,6 @@
 package me.lifegrep.heart.sensor;
 
-import me.lifegrep.heart.BluetoothGattExecutor;
+import me.lifegrep.heart.services.BluetoothGattExecutor;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 

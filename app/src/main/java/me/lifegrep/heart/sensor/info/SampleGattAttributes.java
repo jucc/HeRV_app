@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.lifegrep.heart;
+package me.lifegrep.heart.sensor.info;
 
 import java.util.HashMap;
 

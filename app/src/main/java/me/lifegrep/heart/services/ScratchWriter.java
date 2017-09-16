@@ -3,7 +3,7 @@
  * Heartbeats and daily events are written in real time to a json scratch file in internal storage.
  * After sometime, these events/heartbeats are uploaded to a server and the scratch cleaned.
  */
-package me.lifegrep.heart;
+package me.lifegrep.heart.services;
 
 import android.content.Context;
 import android.os.Environment;

@@ -1,4 +1,4 @@
-package me.lifegrep.heart;
+package me.lifegrep.heart.activities;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
@@ -6,18 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ToggleButton;
+
+import me.lifegrep.heart.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,11 +39,8 @@ public class MainActivity extends AppCompatActivity {
      * Listener for fab_start
      */
     public void startActivity(View view) {
-        String text = "Starting";
-        Snackbar.make(view, text, Snackbar.LENGTH_SHORT).setAction("Action", null).show();
-
-        Intent intent_scan = new Intent(this, ActivitySelectionActivity.class);
-        startActivity(intent_scan);
+        Intent intent_activityselection = new Intent(this, ActivitySelectionActivity.class);
+        startActivity(intent_activityselection);
     }
 
     /**
@@ -68,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!blueAdapter.isEnabled()) {
                     Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                     startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                    //TODO check for the case where the user selects not to enable BT
                 }
             }
 

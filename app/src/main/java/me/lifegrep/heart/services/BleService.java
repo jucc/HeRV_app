@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.lifegrep.heart;
+package me.lifegrep.heart.services;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Calendar;
 
 
+import me.lifegrep.heart.model.Heartbeat;
 import me.lifegrep.heart.sensor.BleSensor;
 import me.lifegrep.heart.sensor.BleSensors;
 
@@ -139,8 +140,7 @@ public class BleService extends Service {
         sendBroadcast(intent);
     }
 
-    private void broadcastUpdate(final String action,
-                                 final BluetoothGattCharacteristic characteristic) {
+    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
         intent.putExtra(EXTRA_SERVICE_UUID, characteristic.getService().getUuid().toString());
         intent.putExtra(EXTRA_CHARACTERISTIC_UUID, characteristic.getUuid().toString());
@@ -148,8 +148,7 @@ public class BleService extends Service {
         final BleSensor<?> sensor = BleSensors.getSensor(characteristic.getService().getUuid().toString());
         if (sensor != null) {
             sensor.onCharacteristicChanged(characteristic);
-            final String text = sensor.getDataString();
-            intent.putExtra(EXTRA_TEXT, text);
+            intent.putExtra(EXTRA_TEXT, sensor.getDataString());
             sendBroadcast(intent);
             //TODO create a separate service to store data
             if (writer != null) {

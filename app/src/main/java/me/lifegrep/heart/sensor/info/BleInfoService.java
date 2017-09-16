@@ -1,4 +1,4 @@
-package me.lifegrep.heart.info;
+package me.lifegrep.heart.sensor.info;
 
 /**
  * Created by steven on 10/7/13.

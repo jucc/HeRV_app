@@ -1,4 +1,4 @@
-package me.lifegrep.heart.info;
+package me.lifegrep.heart.sensor.info;
 
 import java.util.HashMap;
 

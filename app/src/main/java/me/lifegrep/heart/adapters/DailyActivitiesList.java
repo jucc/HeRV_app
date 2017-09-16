@@ -2,7 +2,7 @@
  * Lifegrep daily activities list
  * Juliana Cavalcanti - 2017/03
  */
-package me.lifegrep.heart;
+package me.lifegrep.heart.adapters;
 
 import java.util.List;
 import java.util.ArrayList;

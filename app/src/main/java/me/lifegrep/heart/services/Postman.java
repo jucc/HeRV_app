@@ -1,4 +1,4 @@
-package me.lifegrep.heart;
+package me.lifegrep.heart.services;
 
 /**
  * Created with IntelliJ IDEA.

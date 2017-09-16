@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package me.lifegrep.heart;
+package me.lifegrep.heart.activities;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -40,6 +40,7 @@ import android.widget.Toast;
 import java.util.List;
 
 
+import me.lifegrep.heart.services.BleService;
 import me.lifegrep.heart.R;
 import me.lifegrep.heart.adapters.BleServicesAdapter;
 import me.lifegrep.heart.adapters.BleServicesAdapter.OnServiceItemClickListener;

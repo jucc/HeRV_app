@@ -68,7 +68,7 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
     public boolean onCharacteristicRead(BluetoothGattCharacteristic c) {
         super.onCharacteristicRead(c);
 
-        Log.d(TAG, "onCharacteristicsReas");
+        Log.d(TAG, "onCharacteristicsRead");
         
         if ( !c.getUuid().toString().equals(UUID_SENSOR_BODY_LOCATION) )
             return false;
@@ -151,8 +151,6 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
 		} else  {
 			Log.d(TAG, "Heart rate sensor contact info doesn't exist");
 		}
-		//final int heartRate = characteristic.getIntValue(format, 1);
-		//Log.d(TAG, String.format("Received heart rate: %d", heartRate));
 		return 0.0d;
 	}
 	
@@ -166,8 +164,6 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
 		} else {
 			Log.d(TAG, "Heart rate energy calculation doesn't exist.");
 		}
-		//final int heartRate = characteristic.getIntValue(format, 1);
-		//Log.d(TAG, String.format("Received heart rate: %d", heartRate));
 		return 0.0d;
 	}
 	
@@ -215,7 +211,4 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
         Log.d(TAG, "No RR data on this update: ");
         return null;
 	}
-
-
-
 }
