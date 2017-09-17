@@ -35,7 +35,7 @@ public class ScratchWriter {
         FileWriter fw = null;
         BufferedWriter bw = null;
         try {
-            //TODO open file only once and close at the end
+            //TODO URGENT open file only once and close at the end
             fw = new FileWriter(filename, true);
             bw = new BufferedWriter(fw);
             bw.write(data + "\n");
@@ -86,5 +86,4 @@ public class ScratchWriter {
             }
         }
     }
-
 }

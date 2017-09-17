@@ -150,18 +150,16 @@ public class BleService extends Service {
             sensor.onCharacteristicChanged(characteristic);
             intent.putExtra(EXTRA_TEXT, sensor.getDataString());
             sendBroadcast(intent);
-            //TODO create a separate service to store data
+            //TODO URGENT create a separate service to store data
             if (writer != null) {
                 List<Integer> intervals = new ArrayList<Integer>();
                 //TODO is there a more efficient way to convert this?
                 float[] data = (float[]) sensor.getData();
                 for (int i = 1; i < data.length; i++) {
-                    intervals.add((int)data[i]);
+                    // intervals.add((int) data[i]);
+                    Heartbeat beat = new Heartbeat(0, (int) data[i], Calendar.getInstance().getTime());
+                    writer.saveData(beat.toCSVPerBeat());
                 }
-                //TODO what if more than one event returns in the same second?
-                //TODO get user ID from main activity screen
-                Heartbeat beat = new Heartbeat(0, intervals, Calendar.getInstance().getTime());
-                writer.saveData(beat.toString() + ",");
             } else {
                 Log.w(TAG, "Scratch writer not available, RR not recorded");
             }
@@ -242,13 +240,11 @@ public class BleService extends Service {
         }
 
         /*
-        creates a file to store a json with a list of heartbeats (JSONObjects) in order to later
+        creates a file to store a csv with a list of heartbeats in order to later
         send them to the server as a bundle, reducing internet usage and connection dependency
         */
         String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-        writer = new ScratchWriter(this, "rr" + dt + ".json");
-        writer.saveData("{\"beats\": [");
-
+        writer = new ScratchWriter(this, "rr" + dt + ".csv");
         return true;
     }
 
@@ -314,10 +310,6 @@ public class BleService extends Service {
     public void close() {
         if (gatt == null) {
             return;
-        }
-        if (writer != null) {
-            //TODO erase last comma
-            writer.saveData("]};");
         }
         gatt.close();
         gatt = null;

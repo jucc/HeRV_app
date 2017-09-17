@@ -29,13 +29,13 @@ public class Postman extends AsyncTask<Void, Void, Void> {
     private final String TAG = "Lifegrep";
 
     String address = "http://lifegrep.org/save";
-    Event letter = null;
+    LifeEvent letter = null;
     Context sender= null;
 
     HttpResponse response;
     String msg = "";
 
-    public void send(Event event, String host, Context context) {
+    public void send(LifeEvent event, String host, Context context) {
         this.letter = event;
         if (host != null) {
             this.address = host;
