@@ -1,7 +1,6 @@
 package me.lifegrep.heart.activities;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -18,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     Switch heartSwitch;
     TextView heartbeat;
+    EditText userID;
 
     private BluetoothAdapter blueAdapter;
     private BleService bleService;
@@ -51,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         heartSwitch = (Switch) findViewById(R.id.sw_heart);
         heartbeat = (TextView) findViewById(R.id.tv_heartbeat);
+        userID = (EditText) findViewById(R.id.et_userID);
+
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             heartSwitch.setEnabled(false);
