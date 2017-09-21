@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-//TODO inherit from LifeEvent and override toJson and toCSV. Value will have to be templated
 public class Heartbeat implements Event {
 
     protected Integer user;

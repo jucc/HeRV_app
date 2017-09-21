@@ -16,6 +16,9 @@
 
 package me.lifegrep.heart.services;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -32,39 +35,49 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.UUID;
+
+import me.lifegrep.heart.R;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
  * given Bluetooth LE device.
  */
 public class BluetoothLeService extends Service {
+
     private final static String TAG = BluetoothLeService.class.getSimpleName();
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
+    private NotificationManager notificationMgr;
     private int mConnectionState = STATE_DISCONNECTED;
 
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
-    public final static String ACTION_GATT_CONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
-    public final static String ACTION_GATT_DISCONNECTED =
-            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
-    public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
-    public final static String ACTION_DATA_AVAILABLE =
-            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
-    public final static String EXTRA_DATA =
-            "com.example.bluetooth.le.EXTRA_DATA";
+    private final static String INTENT_PREFIX = BluetoothLeService.class.getPackage().getName();
+    public final static String ACTION_GATT_CONNECTED = INTENT_PREFIX+".ACTION_GATT_CONNECTED";
+    public final static String ACTION_GATT_DISCONNECTED = INTENT_PREFIX+".ACTION_GATT_DISCONNECTED";
+    public final static String ACTION_GATT_SERVICES_DISCOVERED = INTENT_PREFIX+".ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_DATA_AVAILABLE = INTENT_PREFIX+".ACTION_DATA_AVAILABLE";
+    public final static String EXTRA_SERVICE_UUID = INTENT_PREFIX+".EXTRA_SERVICE_UUID";
+    public final static String EXTRA_CHARACTERISTIC_UUID = INTENT_PREFIX+".EXTRA_CHARACTERISTIC_UUI";
+    public final static String EXTRA_DATA = INTENT_PREFIX+".EXTRA_DATA";
 
     public final static UUID UUID_HRMEASURE =
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+
+    public final static int NOTIFICATION_EX = 1;
+    private static SimpleDateFormat formatDateDB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static SimpleDateFormat formatDateFilename = new SimpleDateFormat("yyMMddHHmm");
+    private ScratchWriter writer;
+
+
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -122,14 +135,13 @@ public class BluetoothLeService extends Service {
     private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
 
+        String data;
         if (UUID_HRMEASURE.equals(characteristic.getUuid())) {
-            final int heartRate = readHeartRateCharacteristic(characteristic);
-            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
-            intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
+            data = extractDataFromHRMCharacteristic(characteristic);
         } else {
-            String data = readGeneralCharacteristic(characteristic);
-            intent.putExtra(EXTRA_DATA, data);
+            data = extractDataFromGeneralCharacteristic(characteristic);
         }
+        intent.putExtra(EXTRA_DATA, data);
         sendBroadcast(intent);
     }
 
@@ -266,6 +278,27 @@ public class BluetoothLeService extends Service {
     }
 
     /**
+     * Show a notification while this service is running.
+     */
+    private void showNotification() {
+        notificationMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        int icon = R.drawable.ic_launcher;
+        CharSequence tickerText = "Hello";
+        long when = System.currentTimeMillis();
+
+        Notification notification = new Notification(icon, tickerText, when);
+
+        Context context = getApplicationContext();
+        CharSequence contentTitle = "My notification";
+        CharSequence contentText = "Hello World!";
+        Intent notificationIntent = new Intent(this, BluetoothLeService.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        notificationMgr.notify(NOTIFICATION_EX, notification);
+    }
+
+    /**
      * Enables or disables notification on a given characteristic.
      * @param enabled  if true, enables notifications; if false, disables them
      */
@@ -324,23 +357,25 @@ public class BluetoothLeService extends Service {
      * Parsing of the values is done according to:
      * http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
      **/
-    private int readHeartRateCharacteristic(BluetoothGattCharacteristic characteristic) {
-        int flag = characteristic.getProperties();
-        int format = -1;
-        if ((flag & 0x01) != 0) {
-            format = BluetoothGattCharacteristic.FORMAT_UINT16;
-            //Log.d(TAG, "Heart rate format UINT16.");
-        } else {
-            format = BluetoothGattCharacteristic.FORMAT_UINT8;
-            //Log.d(TAG, "Heart rate format UINT8.");
+    private String extractDataFromHRMCharacteristic(BluetoothGattCharacteristic characteristic) {
+        Integer[] rr = extractBeatToBeatInterval(characteristic);
+        Integer hr = extractHeartRate(characteristic);
+        StringBuilder data = new StringBuilder();
+        data.append("Heart Rate: ");
+        data.append(hr);
+        data.append("\n");
+        data.append("Intervals: ");
+        for(Integer beat : rr) {
+            data.append(beat);
+            data.append(" ");
         }
-        return characteristic.getIntValue(format, 1);
+        return data.toString();
     }
 
     /**
      * Reads data from characteristics other than heart rate measurement, dumping in HEX format
      **/
-    private String readGeneralCharacteristic(BluetoothGattCharacteristic characteristic) {
+    private String extractDataFromGeneralCharacteristic(BluetoothGattCharacteristic characteristic) {
         final byte[] data = characteristic.getValue();
         if (data != null && data.length > 0) {
             final StringBuilder stringBuilder = new StringBuilder(data.length);
@@ -349,5 +384,68 @@ public class BluetoothLeService extends Service {
             return (new String(data) + "\n" + stringBuilder.toString());
         }
         else return "";
+    }
+
+
+    /**
+     * Extracts RR (IBI) intervals from heart rate measurement characteristic
+     * Copied from https://github.com/oerjanti/BLE-Heart-rate-variability-demo
+     */
+    private Integer[] extractBeatToBeatInterval( BluetoothGattCharacteristic characteristic) {
+
+        int flag = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+        int format = -1;
+        int energy = -1;
+        int offset = 1; // This depends on hear rate value format and if there is energy data
+        int rr_count = 0;
+
+        if ((flag & 0x01) != 0) {
+            format = BluetoothGattCharacteristic.FORMAT_UINT16;
+            offset = 3;
+        } else {
+            format = BluetoothGattCharacteristic.FORMAT_UINT8;
+            offset = 2;
+        }
+        if ((flag & 0x08) != 0) {
+            // calories present
+            energy = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+            offset += 2;
+            Log.d(TAG, "Received energy: {}"+ energy);
+        }
+        if ((flag & 0x16) != 0){
+            //Log.d(TAG, "RR length: "+ (characteristic.getValue()).length);
+            rr_count = ((characteristic.getValue()).length - offset) / 2;
+            Log.d(TAG, "rr_count: "+ rr_count);
+            if (rr_count > 0) {
+                Integer[] mRr_values = new Integer[rr_count];
+                for (int i = 0; i < rr_count; i++) {
+                    mRr_values[i] = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+                    offset += 2;
+                    Log.d(TAG, "RR: " + mRr_values[i]);
+                }
+                return mRr_values;
+            }
+        }
+        Log.d(TAG, "No RR data on this update: ");
+        return null;
+    }
+
+    /**
+     * Extracts heart rate value from heart rate measurement characteristic
+     * Modified from https://github.com/oerjanti/BLE-Heart-rate-variability-demo
+     */
+    private Integer extractHeartRate( BluetoothGattCharacteristic characteristic) {
+
+        int flag = characteristic.getProperties();
+        int format = -1;
+        // Heart rate bit number format
+        if ((flag & 0x01) != 0) {
+            format = BluetoothGattCharacteristic.FORMAT_UINT16;
+        } else {
+            format = BluetoothGattCharacteristic.FORMAT_UINT8;
+        }
+        final int heartRate = characteristic.getIntValue(format, 1);
+        Log.d(TAG, String.format("Received heart rate: %d", heartRate));
+        return heartRate;
     }
 }

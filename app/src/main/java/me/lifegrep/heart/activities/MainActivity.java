@@ -22,8 +22,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import me.lifegrep.heart.R;
-import me.lifegrep.heart.adapters.BleServicesAdapter;
-import me.lifegrep.heart.sensor.BleSensor;
 import me.lifegrep.heart.services.BluetoothLeService;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,9 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter blueAdapter;
     private BluetoothLeService blueService;
-    private BleServicesAdapter.OnServiceItemClickListener serviceListener;
 
-    private BleSensor<?> heartRateSensor;
     private String deviceName;
     private String deviceAddress;
 

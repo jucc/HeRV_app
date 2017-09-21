@@ -163,11 +163,7 @@ public class DeviceScanActivity extends ListActivity {
         if (device == null)
             return;
 
-        final Intent intent = new Intent(this, DeviceServicesActivity.class);
-        intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_NAME, device.getName());
-        intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-
-        startActivity(intent);
+        //TODO return value to main activity here
     }
 
     private void init() {
