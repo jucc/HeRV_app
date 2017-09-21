@@ -26,6 +26,7 @@ import me.lifegrep.heart.adapters.BleServicesAdapter;
 import me.lifegrep.heart.sensor.BleSensor;
 import me.lifegrep.heart.sensor.BleSensors;
 import me.lifegrep.heart.services.BleService;
+import me.lifegrep.heart.services.BluetoothLeService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     EditText userID;
 
     private BluetoothAdapter blueAdapter;
-    private BleService bleService;
+    private BluetoothLeService blueService;
     private BleServicesAdapter.OnServiceItemClickListener serviceListener;
 
     private BleSensor<?> heartRateSensor;
@@ -66,13 +67,11 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Log.i(TAG, "Activity on resume");
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        if (bleService != null) {
+        if (blueService != null) {
             heartSwitch.setChecked(true);
-            final boolean result = bleService.connect(deviceAddress);
+            final boolean result = blueService.connect(deviceAddress);
             Log.i(TAG, "Connect request result=" + result);
-        }
-        else
-        {
+        } else {
             heartSwitch.setChecked(false);
         }
     }
@@ -90,13 +89,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "Activity on destroy");
-        if (serviceConnection != null)
-        {
+        if (serviceConnection != null) {
             Log.i(TAG, "Unbinding from service on activity destroy");
             unbindService(serviceConnection);
         }
-        bleService = null;
-    //    serviceConnection = null;
+        blueService = null;
+        //    serviceConnection = null;
     }
 
 
@@ -169,26 +167,27 @@ public class MainActivity extends AppCompatActivity {
         this.deviceName = "Polar H7";
         this.deviceAddress = "00:22:D0:85:88:8E";
 
-        final Intent bleServiceIntent = new Intent(this, BleService.class);
-        startService(bleServiceIntent);
+        final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
+        // startService(blueServiceIntent);
         //TODO binding to the freakin' service makes it die when unbound. How to solve?????
-        // bindService(bleServiceIntent, serviceConnection, BIND_AUTO_CREATE);
-        // Log.i(TAG, "Activity bound");
+        bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        Log.i(TAG, "Activity bound");
     }
 
     /**
      * Stop the heart monitor service running in background
      */
     private void turnOffMonitor() {
-        if (bleService != null) {
+        if (blueService != null) {
             Log.i(TAG, "Stopping service");
             unbindService(serviceConnection);
-            bleService.stopSelf();
+            blueService.stopSelf();
         }
     }
 
     /**
      * Get a bluetooth adapter and request the user to enable bluetooth if it is not yet enabled
+     *
      * @return adapter
      */
     private BluetoothAdapter getBluetoothAdapter() {
@@ -219,30 +218,30 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            Log.i(TAG, "ServiceConnection onServiceConnected");
-            bleService = ((BleService.LocalBinder) service).getService();
-            if (!bleService.initialize()) {
+            Log.i(TAG, "Service Connected");
+            blueService = ((BluetoothLeService.LocalBinder) service).getService();
+            if (!blueService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
                 finish();
             }
             // Automatically connects to the device upon successful start-up initialization.
-            bleService.connect(deviceAddress);
+            blueService.connect(deviceAddress);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             Log.i(TAG, "ServiceConnection onServiceConnected");
-            bleService = null;
+            blueService = null;
         }
     };
 
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(BleService.ACTION_GATT_CONNECTED);
-        intentFilter.addAction(BleService.ACTION_GATT_DISCONNECTED);
-        intentFilter.addAction(BleService.ACTION_GATT_SERVICES_DISCOVERED);
-        intentFilter.addAction(BleService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
 
@@ -252,42 +251,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            if (BleService.ACTION_GATT_CONNECTED.equals(action)) {
-                heartbeat.setText("Connecting...");
-            } else if (BleService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                heartbeat.setText("Disconnected");
-            } else if (BleService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                heartbeat.setText("Connected...");
-                // Show all the supported services and characteristics on the user interface.
-                enableHeartRateSensor();
-            } else if (BleService.ACTION_DATA_AVAILABLE.equals(action)) {
-                heartbeat.setText(intent.getStringExtra(BleService.EXTRA_TEXT));
+            if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+                heartbeat.setText(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
             }
+            else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                Log.i(TAG, "Services discovered");
+                BluetoothGattCharacteristic hr =
+                        blueService.findHeartRateCharacteristic(blueService.getSupportedGattServices());
+                blueService.setCharacteristicNotification(hr, true);
+            }
+            // blatantly ignore any other actions because the activity doesn't really care
         }
     };
-
-
-    private boolean enableHeartRateSensor() {
-
-        BleServicesAdapter gattServiceAdapter = new BleServicesAdapter(this, this.bleService.getSupportedGattServices());
-        final BluetoothGattCharacteristic characteristic = gattServiceAdapter.getHeartRateCharacteristic();
-        Log.d(TAG,"characteristic: " + characteristic);
-        final BleSensor<?> sensor = BleSensors.getSensor(characteristic.getService().getUuid().toString());
-
-        if (this.heartRateSensor != null)
-            this.bleService.enableSensor(this.heartRateSensor, false);
-
-        if (sensor == null) {
-            this.bleService.readCharacteristic(characteristic);
-            return true;
-        }
-
-        if (sensor == this.heartRateSensor)
-            return true;
-
-        this.heartRateSensor = sensor;
-        this.bleService.enableSensor(sensor, true);
-
-        return true;
-    }
 }

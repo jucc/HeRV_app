@@ -247,12 +247,12 @@ public class BleService extends Service {
 	public void enableSensor(BleSensor<?> sensor, boolean enabled) {
 	    if (sensor == null)
 	        return;
-	
+
 	    if (adapter == null || gatt == null) {
 	        Log.w(TAG, "BluetoothAdapter not initialized");
 	        return;
 	    }
-	
+
 	    executor.enable(sensor, enabled);
 	    executor.execute(gatt);
 	}

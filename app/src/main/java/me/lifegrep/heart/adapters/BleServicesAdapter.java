@@ -53,23 +53,18 @@ public class BleServicesAdapter extends BaseExpandableListAdapter {
 
 	private OnServiceItemClickListener serviceListener;
 
-	public BleServicesAdapter(Context context,
-			List<BluetoothGattService> gattServices) {
+	public BleServicesAdapter(Context context, List<BluetoothGattService> gattServices) {
 		inflater = LayoutInflater.from(context);
 
 		services = new ArrayList<BluetoothGattService>(gattServices.size());
 		characteristics = new HashMap<BluetoothGattService, ArrayList<BluetoothGattCharacteristic>>(
 				gattServices.size());
 		for (BluetoothGattService gattService : gattServices) {
-			final List<BluetoothGattCharacteristic> gattCharacteristics = gattService
-					.getCharacteristics();
-			characteristics.put(gattService,
-					new ArrayList<BluetoothGattCharacteristic>(
-							gattCharacteristics));
+			final List<BluetoothGattCharacteristic> gattCharacteristics = gattService .getCharacteristics();
+			characteristics.put(gattService, new ArrayList<BluetoothGattCharacteristic>( gattCharacteristics));
 			services.add(gattService);
 
-			if (gattService.getUuid().equals(
-					UUID.fromString(BleHeartRateSensor.getServiceUUIDString()))) {
+			if (gattService.getUuid().equals( UUID.fromString(BleHeartRateSensor.getServiceUUIDString()))) {
 				heartRateService = gattService;
 				heartRateCharacteristic = gattCharacteristics.get(0);
 			}

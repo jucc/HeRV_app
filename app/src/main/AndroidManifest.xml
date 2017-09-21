@@ -30,12 +30,10 @@
         </activity>
         <!-- search for devices !-->
         <activity android:name=".activities.DeviceScanActivity"/>
-        <!-- show device details !-->
-        <activity android:name=".activities.DeviceServicesActivity"/>
         <!-- allow user to log current activity !-->
         <activity android:name=".activities.ActivitySelectionActivity"/>
         <!-- connect to BLE (polar H7) device -->
-        <service android:name=".services.BleService" android:enabled="true"/>
+        <service android:name=".services.BluetoothLeService" android:enabled="true"/>
 
     </application>
 
