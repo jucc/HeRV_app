@@ -32,5 +32,8 @@
     <string name="label_services">Services</string>
     <string name="title_demo_heartrate">Heart Rate</string>
 
+    <string name="local_service_started">Local service started</string>
+    <string name="local_service_label">Local service label</string>
+
 
 </resources>

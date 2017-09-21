@@ -16,6 +16,9 @@
 
 package me.lifegrep.heart.services;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -36,6 +39,7 @@ import java.util.List;
 import java.util.Calendar;
 
 
+import me.lifegrep.heart.R;
 import me.lifegrep.heart.model.Heartbeat;
 import me.lifegrep.heart.sensor.BleSensor;
 import me.lifegrep.heart.sensor.BleSensors;
@@ -47,13 +51,6 @@ import me.lifegrep.heart.sensor.BleSensors;
  */
 public class BleService extends Service {
     private final static String TAG = BleService.class.getSimpleName();
-
-    private BluetoothManager bluetoothManager;
-    private BluetoothAdapter adapter;
-    private String deviceAddress;
-    private BluetoothGatt gatt;
-    private int connectionState = STATE_DISCONNECTED;
-
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
@@ -68,9 +65,47 @@ public class BleService extends Service {
     public final static String EXTRA_DATA = INTENT_PREFIX+".EXTRA_DATA";
     public final static String EXTRA_TEXT = INTENT_PREFIX+".EXTRA_TEXT";
 
+    public final static int NOTIFICATION_EX = 1;
+
+    private BluetoothManager bluetoothManager;
+    private BluetoothAdapter adapter;
+    private String deviceAddress;
+    private BluetoothGatt gatt;
+    private NotificationManager mNM;
+
     private static SimpleDateFormat formatDateDB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static SimpleDateFormat formatDateFilename = new SimpleDateFormat("yyMMddHHmm");
     private ScratchWriter writer;
+    private int connectionState = STATE_DISCONNECTED;
+
+
+    @Override
+    public void onCreate() {
+        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        showNotification();
+    }
+
+
+    /**
+     * Show a notification while this service is running.
+     */
+    private void showNotification() {
+        mNM = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        int icon = R.drawable.ic_launcher;
+        CharSequence tickerText = "Hello";
+        long when = System.currentTimeMillis();
+
+        Notification notification = new Notification(icon, tickerText, when);
+
+        Context context = getApplicationContext();
+        CharSequence contentTitle = "My notification";
+        CharSequence contentText = "Hello World!";
+        Intent notificationIntent = new Intent(this, BleService.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        mNM.notify(NOTIFICATION_EX, notification);
+    }
 
     // Implements callback methods for GATT events that the app cares about.
     // For example, connection change and services discovered.
@@ -158,7 +193,7 @@ public class BleService extends Service {
                 for (int i = 1; i < data.length; i++) {
                     // intervals.add((int) data[i]);
                     Heartbeat beat = new Heartbeat(0, (int) data[i], Calendar.getInstance().getTime());
-                    writer.saveData(beat.toCSVPerBeat());
+                    writer.saveData(beat.toCSV());
                 }
             } else {
                 Log.w(TAG, "Scratch writer not available, RR not recorded");
@@ -183,7 +218,14 @@ public class BleService extends Service {
     }
 
     @Override
+    public int onStartCommand (Intent intent, int flags, int startId) {
+        Log.i("LocalService", "Received start id " + startId + ": " + intent);
+        return START_STICKY;
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
+        Log.i("LocalService", "Bound to intent: " + intent);
         return mBinder;
     }
 
@@ -223,8 +265,8 @@ public class BleService extends Service {
      * @return Return true if the initialization is successful.
      */
     public boolean initialize() {
-        // For API level 18 and above, get a reference to BluetoothAdapter through
-        // BluetoothManager.
+        // For API level 18 and above, get a reference to BluetoothAdapter through BluetoothManager
+        Log.d(TAG, "Initializing service");
         if (bluetoothManager == null) {
             bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (bluetoothManager == null) {
@@ -239,10 +281,7 @@ public class BleService extends Service {
             return false;
         }
 
-        /*
-        creates a file to store a csv with a list of heartbeats in order to later
-        send them to the server as a bundle, reducing internet usage and connection dependency
-        */
+        /* creates a file to store a csv with a list of heartbeats */
         String dt = formatDateFilename.format(Calendar.getInstance().getTime());
         writer = new ScratchWriter(this, "rr" + dt + ".csv");
         return true;
@@ -308,6 +347,8 @@ public class BleService extends Service {
      * released properly.
      */
     public void close() {
+        Log.i(TAG, "Service closing. Goodbye.");
+        mNM.cancel(NOTIFICATION_EX);
         if (gatt == null) {
             return;
         }

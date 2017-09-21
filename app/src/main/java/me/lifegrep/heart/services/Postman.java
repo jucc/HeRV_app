@@ -5,7 +5,7 @@ package me.lifegrep.heart.services;
  * User: ju
  * Date: 3/30/13
  * Time: 7:00 PM
-
+ */
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -13,12 +13,10 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.IOException;
+
+import me.lifegrep.heart.model.Event;
 
 //TODO redistribute responsibility between postman and activity to allow services (no UI, no toast)
 /**
@@ -29,13 +27,13 @@ public class Postman extends AsyncTask<Void, Void, Void> {
     private final String TAG = "Lifegrep";
 
     String address = "http://lifegrep.org/save";
-    LifeEvent letter = null;
+    Event letter = null;
     Context sender= null;
 
     HttpResponse response;
     String msg = "";
 
-    public void send(LifeEvent event, String host, Context context) {
+    public void send(Event event, String host, Context context) {
         this.letter = event;
         if (host != null) {
             this.address = host;
@@ -88,5 +86,5 @@ public class Postman extends AsyncTask<Void, Void, Void> {
                         response.getStatusLine() != null &&
                         response.getStatusLine().getStatusCode() == 200;
     }
-}
-*/
+
+}*/

@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 //TODO inherit from LifeEvent and override toJson and toCSV. Value will have to be templated
-public class Heartbeat {
+public class Heartbeat implements Event {
 
     protected Integer user;
     protected Date dt;
@@ -79,7 +79,7 @@ public class Heartbeat {
      * Converts the event to the json format where each RR interval is an object
      * @return JSON = { "dt": dt, "user": userID, "values": [RR1, .. RRN] }
      */
-    public JSONObject toJsonPerBeat () throws JSONException {
+    public JSONObject toJson() throws JSONException {
 
         //TODO get rid of JSONObject and use GSON or Jackson instead
         JSONObject event = new JSONObject();
@@ -120,7 +120,7 @@ public class Heartbeat {
      * events in a local file, so the server can process the events and add the user when saving)
      * @return list of arrays, one for each heartbeat found (usually 1 or 2)
      */
-    public String toCSVPerBeat() {
+    public String toCSV() {
         String dt = new SimpleDateFormat(fmtDateDB).format(this.getDt());
         StringBuilder sb = new StringBuilder();
         sb.append(dt);
@@ -148,6 +148,10 @@ public class Heartbeat {
     public Date getDt(){ return dt; }
 
     public void setDt(Date dt) { this.dt = dt; }
+
+    public Integer getValue() { return this.intervals.get(0); }
+
+    public String getType() { return this.TYPE_HEARTBEAT; }
 
     public List<Integer> getIntervals() { return intervals; }
 

@@ -19,22 +19,20 @@ public class LifeEvent {
     protected int user;
     protected String type;
     protected Date dt;
-    protected String value;
+    protected Object value;
 
     public final static String fmtDateDB = "yyyy-MM-dd HH:mm:ss";
 
     protected LifeEvent() {}
 
-    // Constructors with a single string as value (will default to key="value")
-
-    public LifeEvent(int user, String type, String value) {
+    public LifeEvent(int user, String type, Object value) {
         this.user = user;
         this.type = type;
         this.value = value;
         this.dt = new Date();
     }
 
-    public LifeEvent(int user, String type, String value, Date dt) {
+    public LifeEvent(int user, String type, Object value, Date dt) {
         this.user = user;
         this.type = type;
         this.value = value;
@@ -112,7 +110,7 @@ public class LifeEvent {
         this.dt = dt;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 }

@@ -20,7 +20,6 @@ import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import me.lifegrep.heart.R;
 import me.lifegrep.heart.adapters.BleServicesAdapter;
@@ -65,10 +64,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i(TAG, "Activity on resume");
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
         if (bleService != null) {
+            heartSwitch.setChecked(true);
             final boolean result = bleService.connect(deviceAddress);
-            Log.d(TAG, "Connect request result=" + result);
+            Log.i(TAG, "Connect request result=" + result);
+        }
+        else
+        {
+            heartSwitch.setChecked(false);
         }
     }
 
@@ -76,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.i(TAG, "Activity on pause");
         unregisterReceiver(gattUpdateReceiver);
     }
 
@@ -83,8 +89,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(serviceConnection);
+        Log.i(TAG, "Activity on destroy");
+        if (serviceConnection != null)
+        {
+            Log.i(TAG, "Unbinding from service on activity destroy");
+            unbindService(serviceConnection);
+        }
         bleService = null;
+    //    serviceConnection = null;
     }
 
 
@@ -118,52 +130,79 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent_activityselection);
     }
 
-
     // Listener registered for sw_heart toggle
     public void toggleHeartMonitor(View view) {
         if (heartSwitch.isChecked()) {
+            turnOnMonitor();
+        } else {
+            turnOffMonitor();
+            heartbeat.setText(R.string.text_monitoroff);
+        }
+    }
 
-            // enable bluetooth if it is not already enabled
+    /**
+     * Start the heart monitor service running in background
+     */
+    private void turnOnMonitor() {
 
-            int REQUEST_ENABLE_BT = 1;
-            final BluetoothManager blueManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-            blueAdapter = blueManager.getAdapter();
-            if (blueAdapter == null) {
+        // if there is no bluetooth adapter yet, get one
+        if (this.blueAdapter == null) {
+            this.blueAdapter = getBluetoothAdapter();
+            if (this.blueAdapter == null) {
                 heartbeat.setText(R.string.text_monitornobluetooth);
             } else {
                 heartbeat.setText(R.string.text_monitorconnecting);
-                if (!blueAdapter.isEnabled()) {
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-                    //TODO check for the case where the user selects not to enable BT
-                }
             }
-
-            // find the device
-            /**
-             * TODO URG recreate the activity as stratActivityForResult and read the device
-             Intent intent_scan = new Intent(this, DeviceScanActivity.class);
-             startActivity(intent_scan);
-             **/
-            //            final Intent intent = new Intent(this, DeviceServicesActivity.class);
+        }
+        // find the device
+        /**
+         * TODO URG recreate the activity as startActivityForResult and read the device
+         Intent intent_scan = new Intent(this, DeviceScanActivity.class);
+         startActivity(intent_scan);
+         **/
+        //            final Intent intent = new Intent(this, DeviceServicesActivity.class);
 //            intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_NAME, this.deviceName);
 //            intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_ADDRESS, this.deviceAddress);
 //            startActivity(intent);
-            this.deviceName = "Polar H7";
-            this.deviceAddress = "00:22:D0:85:88:8E";
 
-            final Intent bleServiceIntent = new Intent(this, BleService.class);
-            bindService(bleServiceIntent, serviceConnection, BIND_AUTO_CREATE);
-            Toast.makeText(this, "service connected", Toast.LENGTH_SHORT).show();
 
-        } else {
+        this.deviceName = "Polar H7";
+        this.deviceAddress = "00:22:D0:85:88:8E";
 
-            if (bleService != null) {
-                //TODO encerrar o servico em vez de somente desconectar
-                bleService.disconnect();
-            }
-            heartbeat.setText(R.string.text_monitoroff);
+        final Intent bleServiceIntent = new Intent(this, BleService.class);
+        startService(bleServiceIntent);
+        //TODO binding to the freakin' service makes it die when unbound. How to solve?????
+        // bindService(bleServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        // Log.i(TAG, "Activity bound");
+    }
+
+    /**
+     * Stop the heart monitor service running in background
+     */
+    private void turnOffMonitor() {
+        if (bleService != null) {
+            Log.i(TAG, "Stopping service");
+            unbindService(serviceConnection);
+            bleService.stopSelf();
         }
+    }
+
+    /**
+     * Get a bluetooth adapter and request the user to enable bluetooth if it is not yet enabled
+     * @return adapter
+     */
+    private BluetoothAdapter getBluetoothAdapter() {
+        int REQUEST_ENABLE_BT = 1;
+        final BluetoothManager blueManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter blueAdapter = blueManager.getAdapter();
+        // enable bluetooth if it is not already enabled
+        if (!blueAdapter.isEnabled()) {
+            Log.i(TAG, "Requesting bluetooth to turn on");
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            //TODO check for the case where the user selects not to enable BT
+        }
+        return blueAdapter;
     }
 
 
@@ -180,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
+            Log.i(TAG, "ServiceConnection onServiceConnected");
             bleService = ((BleService.LocalBinder) service).getService();
             if (!bleService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
@@ -191,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.i(TAG, "ServiceConnection onServiceConnected");
             bleService = null;
         }
     };
