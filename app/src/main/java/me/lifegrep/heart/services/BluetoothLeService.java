@@ -116,38 +116,23 @@ public class BluetoothLeService extends Service {
         sendBroadcast(intent);
     }
 
-    private void broadcastUpdate(final String action,
-                                 final BluetoothGattCharacteristic characteristic) {
+    /**
+     * Broadcasts data from a received updated characteristic
+     */
+    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
 
-        // This is special handling for the Heart Rate Measurement profile.  Data parsing is
-        // carried out as per profile specifications:
-        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
         if (UUID_HRMEASURE.equals(characteristic.getUuid())) {
-            int flag = characteristic.getProperties();
-            int format = -1;
-            if ((flag & 0x01) != 0) {
-                format = BluetoothGattCharacteristic.FORMAT_UINT16;
-                //Log.d(TAG, "Heart rate format UINT16.");
-            } else {
-                format = BluetoothGattCharacteristic.FORMAT_UINT8;
-                //Log.d(TAG, "Heart rate format UINT8.");
-            }
-            final int heartRate = characteristic.getIntValue(format, 1);
+            final int heartRate = readHeartRateCharacteristic(characteristic);
             Log.d(TAG, String.format("Received heart rate: %d", heartRate));
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
         } else {
-            // For all other profiles, writes the data formatted in HEX.
-            final byte[] data = characteristic.getValue();
-            if (data != null && data.length > 0) {
-                final StringBuilder stringBuilder = new StringBuilder(data.length);
-                for (byte byteChar : data)
-                    stringBuilder.append(String.format("%02X ", byteChar));
-                intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
-            }
+            String data = readGeneralCharacteristic(characteristic);
+            intent.putExtra(EXTRA_DATA, data);
         }
         sendBroadcast(intent);
     }
+
 
     public class LocalBinder extends Binder {
         public BluetoothLeService getService() {
@@ -271,8 +256,6 @@ public class BluetoothLeService extends Service {
      * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
      * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
      * callback.
-     *
-     * @param characteristic The characteristic to read from.
      */
     public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
@@ -284,9 +267,7 @@ public class BluetoothLeService extends Service {
 
     /**
      * Enables or disables notification on a given characteristic.
-     *
-     * @param characteristic Characteristic to act on.
-     * @param enabled        If true, enable notification.  False otherwise.
+     * @param enabled  if true, enables notifications; if false, disables them
      */
     public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic, boolean enabled) {
 
@@ -320,7 +301,11 @@ public class BluetoothLeService extends Service {
     }
 
 
-    public BluetoothGattCharacteristic findHeartRateCharacteristic(List<BluetoothGattService> gattServices) {
+    /**
+     * Searches a list of available gatt services and their characteristics to find the
+     * heart rate measurement characteristic
+     **/
+    public BluetoothGattCharacteristic findHRMCharacteristic(List<BluetoothGattService> gattServices) {
 
         for (BluetoothGattService gattService : gattServices) {
             List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
@@ -331,5 +316,38 @@ public class BluetoothLeService extends Service {
             }
         }
         return null;
+    }
+
+
+    /**
+     * Reads HR and RR (IBI) intervals from the Heart Rate Measurement Characteristic
+     * Parsing of the values is done according to:
+     * http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
+     **/
+    private int readHeartRateCharacteristic(BluetoothGattCharacteristic characteristic) {
+        int flag = characteristic.getProperties();
+        int format = -1;
+        if ((flag & 0x01) != 0) {
+            format = BluetoothGattCharacteristic.FORMAT_UINT16;
+            //Log.d(TAG, "Heart rate format UINT16.");
+        } else {
+            format = BluetoothGattCharacteristic.FORMAT_UINT8;
+            //Log.d(TAG, "Heart rate format UINT8.");
+        }
+        return characteristic.getIntValue(format, 1);
+    }
+
+    /**
+     * Reads data from characteristics other than heart rate measurement, dumping in HEX format
+     **/
+    private String readGeneralCharacteristic(BluetoothGattCharacteristic characteristic) {
+        final byte[] data = characteristic.getValue();
+        if (data != null && data.length > 0) {
+            final StringBuilder stringBuilder = new StringBuilder(data.length);
+            for (byte byteChar : data)
+                stringBuilder.append(String.format("%02X ", byteChar));
+            return (new String(data) + "\n" + stringBuilder.toString());
+        }
+        else return "";
     }
 }

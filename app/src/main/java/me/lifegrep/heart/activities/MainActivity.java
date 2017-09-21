@@ -24,8 +24,6 @@ import android.widget.TextView;
 import me.lifegrep.heart.R;
 import me.lifegrep.heart.adapters.BleServicesAdapter;
 import me.lifegrep.heart.sensor.BleSensor;
-import me.lifegrep.heart.sensor.BleSensors;
-import me.lifegrep.heart.services.BleService;
 import me.lifegrep.heart.services.BluetoothLeService;
 
 public class MainActivity extends AppCompatActivity {
@@ -257,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
             else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 Log.i(TAG, "Services discovered");
                 BluetoothGattCharacteristic hr =
-                        blueService.findHeartRateCharacteristic(blueService.getSupportedGattServices());
+                        blueService.findHRMCharacteristic(blueService.getSupportedGattServices());
                 blueService.setCharacteristicNotification(hr, true);
             }
             // blatantly ignore any other actions because the activity doesn't really care
