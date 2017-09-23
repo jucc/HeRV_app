@@ -42,17 +42,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "Activity created");
 
         setContentView(R.layout.activity_main);
         heartSwitch = (Switch) findViewById(R.id.sw_heart);
         heartbeat = (TextView) findViewById(R.id.tv_heartbeat);
         userID = (EditText) findViewById(R.id.et_userID);
-
-
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            heartSwitch.setEnabled(false);
-            heartbeat.setText(R.string.text_monitornobluetooth);
-        }
     }
 
 
@@ -60,14 +55,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "Activity on resume");
-        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        if (blueService != null) {
-            heartSwitch.setChecked(true);
-            final boolean result = blueService.connect(deviceAddress);
-            Log.i(TAG, "Connect request result=" + result);
-        } else {
-            heartSwitch.setChecked(false);
+
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            heartSwitch.setEnabled(false);
+            heartbeat.setText(R.string.text_monitornobluetooth);
+            return;
         }
+
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+        //TODO this does not work! blueservice is null on resume, find another way to check is service is running
+        //if (blueService != null) {
+            turnOnMonitor();
+        //} else {
+          //  Log.i(TAG, "No bluetooth service");
+          //  heartSwitch.setChecked(false);
+        //}
     }
 
 
@@ -75,7 +77,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "Activity on pause");
-        unregisterReceiver(gattUpdateReceiver);
+        // TODO how to check that they are running to unbind/unregister??
+        //unregisterReceiver(gattUpdateReceiver);
+        //unbindService(serviceConnection);
     }
 
 
@@ -83,12 +87,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "Activity on destroy");
-        if (serviceConnection != null) {
-            Log.i(TAG, "Unbinding from service on activity destroy");
+        // TODO how to check that they are running to unbind/unregister??
+        unregisterReceiver(gattUpdateReceiver);
+        if (blueService != null) {
             unbindService(serviceConnection);
+            blueService = null;
         }
-        blueService = null;
-        //    serviceConnection = null;
     }
 
 
@@ -162,42 +166,26 @@ public class MainActivity extends AppCompatActivity {
         this.deviceAddress = "00:22:D0:85:88:8E";
 
         final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
-        // startService(blueServiceIntent);
-        //TODO binding to the freakin' service makes it die when unbound. How to solve?????
+        startService(blueServiceIntent);
         bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
         Log.i(TAG, "Activity bound");
+
+        heartSwitch.setChecked(true);
+        heartSwitch.setEnabled(false);
     }
 
     /**
      * Stop the heart monitor service running in background
      */
     private void turnOffMonitor() {
-        if (blueService != null) {
-            Log.i(TAG, "Stopping service");
-            unbindService(serviceConnection);
-            blueService.stopSelf();
-        }
+        Log.i(TAG, "Stopping service");
+        unregisterReceiver(gattUpdateReceiver);
+        blueService.stopSelf();
+        unbindService(serviceConnection);
+        blueService = null;
+        heartSwitch.setChecked(false);
     }
-
-    /**
-     * Get a bluetooth adapter and request the user to enable bluetooth if it is not yet enabled
-     *
-     * @return adapter
-     */
-    private BluetoothAdapter getBluetoothAdapter() {
-        int REQUEST_ENABLE_BT = 1;
-        final BluetoothManager blueManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        BluetoothAdapter blueAdapter = blueManager.getAdapter();
-        // enable bluetooth if it is not already enabled
-        if (!blueAdapter.isEnabled()) {
-            Log.i(TAG, "Requesting bluetooth to turn on");
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            //TODO check for the case where the user selects not to enable BT
-        }
-        return blueAdapter;
-    }
-
 
     /*
     ------------------------------------------------------------------------------------------
@@ -207,12 +195,32 @@ public class MainActivity extends AppCompatActivity {
     ------------------------------------------------------------------------------------------
     */
 
+    /**
+     * Get a bluetooth adapter and request the user to enable bluetooth if it is not yet enabled
+     */
+    private BluetoothAdapter getBluetoothAdapter() {
+
+        final BluetoothManager blueManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter blueAdapter = blueManager.getAdapter();
+
+        // enable bluetooth if it is not already enabled
+        if (!blueAdapter.isEnabled()) {
+            int REQUEST_ENABLE_BT = 1;
+            Log.i(TAG, "Requesting bluetooth to turn on");
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            //TODO check for the case where the user selects not to enable BT
+        }
+        return blueAdapter;
+    }
+
+
     // manage service lifecycle.
     private final ServiceConnection serviceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            Log.i(TAG, "Service Connected");
+            Log.i(TAG, "ServiceConnection ON");
             blueService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!blueService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
@@ -224,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            Log.i(TAG, "ServiceConnection onServiceConnected");
+            Log.i(TAG, "ServiceConnection OFF");
             blueService = null;
         }
     };

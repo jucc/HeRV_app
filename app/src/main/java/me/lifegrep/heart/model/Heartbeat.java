@@ -14,26 +14,24 @@ public class Heartbeat implements Event {
     protected Integer user;
     protected Date dt;
     protected List<Integer> intervals; // more than one beat can be registered in the same second
+    protected Integer heartrate;
 
     public final static String fmtDateDB = "yyyy-MM-dd HH:mm:ss";
 
     protected Heartbeat() {}
 
-    // constructor without date (will use current date as value) and multiple beats in a second
     public Heartbeat(Integer user, List<Integer> intervals) {
         this.user = user;
         this.intervals = intervals;
         this.dt = new Date();
     }
 
-    // constructor with date and multiple beats in a second
     public Heartbeat(Integer user, List<Integer> intervals, Date dt) {
         this.user = user;
         this.intervals = intervals;
         this.dt = dt;
     }
 
-    // constructor without date (will use current date as value) and each beat separate
     public Heartbeat(Integer user, Integer interval) {
         this.user = user;
         this.intervals = new ArrayList<Integer>();
@@ -41,12 +39,17 @@ public class Heartbeat implements Event {
         this.dt = new Date();
     }
 
-    // constructor with date and each beat separate
     public Heartbeat(Integer user, Integer interval, Date dt) {
         this.user = user;
         this.intervals = new ArrayList<Integer>();
         intervals.add(interval);
         this.dt = dt;
+    }
+
+    public Heartbeat(List<Integer> intervals, Integer heartrate) {
+        this.intervals = intervals;
+        this.heartrate = heartrate;
+        this.dt = new Date();
     }
 
     /**
@@ -122,9 +125,14 @@ public class Heartbeat implements Event {
     public String toCSV() {
         String dt = new SimpleDateFormat(fmtDateDB).format(this.getDt());
         StringBuilder sb = new StringBuilder();
-        sb.append(dt);
-        sb.append(", ");
-        sb.append(this.getIntervals().get(0));
+        for (int i =0; i <  intervals.size();  i++) {
+            sb.append(dt);
+            sb.append(",");
+            sb.append(intervals.get(i));
+            if (i != intervals.size() - 1) {
+                sb.append("\n");
+            }
+        }
         return sb.toString();
     }
 
@@ -139,6 +147,24 @@ public class Heartbeat implements Event {
         }
     }
 
+
+    public String toScreenString() {
+
+        StringBuilder data = new StringBuilder();
+        if (this.heartrate != null)  {
+            data.append("Heart Rate: ");
+            data.append(heartrate);
+            data.append("\n");
+        }
+        if (this.intervals != null) {
+            data.append("Intervals: ");
+            for (Integer beat : this.intervals) {
+                data.append(beat);
+                data.append(" ");
+            }
+        }
+        return data.toString();
+    }
 
     public Integer getUser() { return user; }
 
@@ -155,4 +181,9 @@ public class Heartbeat implements Event {
     public List<Integer> getIntervals() { return intervals; }
 
     public void setIntervals(List<Integer> intervals) { this.intervals = intervals; }
+
+    public Integer getHeartrate() { return heartrate; }
+
+    public void setHeartrate(Integer heartrate) { this.heartrate = heartrate; }
+
 }

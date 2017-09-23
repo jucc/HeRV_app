@@ -36,10 +36,13 @@ import android.os.IBinder;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
 import me.lifegrep.heart.R;
+import me.lifegrep.heart.model.Heartbeat;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -77,6 +80,12 @@ public class BluetoothLeService extends Service {
     private static SimpleDateFormat formatDateFilename = new SimpleDateFormat("yyMMddHHmm");
     private ScratchWriter writer;
 
+
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        this.showNotification();
+        // If we get killed, after returning from here, restart
+        return START_STICKY;
+    }
 
 
     // Implements callback methods for GATT events that the app cares about.  For example,
@@ -137,14 +146,24 @@ public class BluetoothLeService extends Service {
 
         String data;
         if (UUID_HRMEASURE.equals(characteristic.getUuid())) {
-            data = extractDataFromHRMCharacteristic(characteristic);
+            Heartbeat beat = extractFromHRMCharacteristic(characteristic);
+            data = beat.toScreenString();
+            //TODO create a different service to deal with file writing
+            saveDataToCSV(beat);
         } else {
-            data = extractDataFromGeneralCharacteristic(characteristic);
+            data = extractFromGeneralCharacteristic(characteristic);
         }
         intent.putExtra(EXTRA_DATA, data);
         sendBroadcast(intent);
     }
 
+    private void saveDataToCSV(Heartbeat beat) {
+        if (writer != null) {
+            writer.saveData(beat.toCSV());
+        } else {
+            Log.w(TAG, "Scratch writer not available, RR not recorded");
+        }
+    }
 
     public class LocalBinder extends Binder {
         public BluetoothLeService getService() {
@@ -162,7 +181,7 @@ public class BluetoothLeService extends Service {
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
-        close();
+        // close();
         return super.onUnbind(intent);
     }
 
@@ -191,6 +210,10 @@ public class BluetoothLeService extends Service {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
+
+        /* creates a file to store a csv with a list of heartbeats */
+        String dt = formatDateFilename.format(Calendar.getInstance().getTime());
+        writer = new ScratchWriter(this, "rr" + dt + ".csv");
 
         return true;
     }
@@ -357,25 +380,16 @@ public class BluetoothLeService extends Service {
      * Parsing of the values is done according to:
      * http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
      **/
-    private String extractDataFromHRMCharacteristic(BluetoothGattCharacteristic characteristic) {
-        Integer[] rr = extractBeatToBeatInterval(characteristic);
+    private Heartbeat extractFromHRMCharacteristic(BluetoothGattCharacteristic characteristic) {
+        List<Integer> rr = extractBeatToBeatInterval(characteristic);
         Integer hr = extractHeartRate(characteristic);
-        StringBuilder data = new StringBuilder();
-        data.append("Heart Rate: ");
-        data.append(hr);
-        data.append("\n");
-        data.append("Intervals: ");
-        for(Integer beat : rr) {
-            data.append(beat);
-            data.append(" ");
-        }
-        return data.toString();
+        return new Heartbeat(rr, hr);
     }
 
     /**
      * Reads data from characteristics other than heart rate measurement, dumping in HEX format
      **/
-    private String extractDataFromGeneralCharacteristic(BluetoothGattCharacteristic characteristic) {
+    private String extractFromGeneralCharacteristic(BluetoothGattCharacteristic characteristic) {
         final byte[] data = characteristic.getValue();
         if (data != null && data.length > 0) {
             final StringBuilder stringBuilder = new StringBuilder(data.length);
@@ -383,7 +397,7 @@ public class BluetoothLeService extends Service {
                 stringBuilder.append(String.format("%02X ", byteChar));
             return (new String(data) + "\n" + stringBuilder.toString());
         }
-        else return "";
+        return "";
     }
 
 
@@ -391,7 +405,7 @@ public class BluetoothLeService extends Service {
      * Extracts RR (IBI) intervals from heart rate measurement characteristic
      * Copied from https://github.com/oerjanti/BLE-Heart-rate-variability-demo
      */
-    private Integer[] extractBeatToBeatInterval( BluetoothGattCharacteristic characteristic) {
+    private List<Integer> extractBeatToBeatInterval( BluetoothGattCharacteristic characteristic) {
 
         int flag = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
         int format = -1;
@@ -417,13 +431,13 @@ public class BluetoothLeService extends Service {
             rr_count = ((characteristic.getValue()).length - offset) / 2;
             Log.d(TAG, "rr_count: "+ rr_count);
             if (rr_count > 0) {
-                Integer[] mRr_values = new Integer[rr_count];
+                List<Integer> beats = new ArrayList<Integer>(rr_count);
                 for (int i = 0; i < rr_count; i++) {
-                    mRr_values[i] = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset);
+                    beats.add(characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT16, offset));
                     offset += 2;
-                    Log.d(TAG, "RR: " + mRr_values[i]);
+                    Log.d(TAG, "RR: " + beats.get(i));
                 }
-                return mRr_values;
+                return beats;
             }
         }
         Log.d(TAG, "No RR data on this update: ");
