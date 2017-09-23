@@ -1,6 +1,7 @@
 package me.lifegrep.heart.activities;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -38,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private String deviceName;
     private String deviceAddress;
 
+    private final int REQUEST_SCAN = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +66,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        //TODO this does not work! blueservice is null on resume, find another way to check is service is running
-        //if (blueService != null) {
+        if (deviceAddress == null ) {
             turnOnMonitor();
-        //} else {
-          //  Log.i(TAG, "No bluetooth service");
-          //  heartSwitch.setChecked(false);
-        //}
+        } else {
+            startBlueService();
+        }
     }
 
 
@@ -151,20 +152,31 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         // find the device
-        /**
-         * TODO URG recreate the activity as startActivityForResult and read the device
-         Intent intent_scan = new Intent(this, DeviceScanActivity.class);
-         startActivity(intent_scan);
-         **/
-        //            final Intent intent = new Intent(this, DeviceServicesActivity.class);
-//            intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_NAME, this.deviceName);
-//            intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_ADDRESS, this.deviceAddress);
-//            startActivity(intent);
+        Intent intent_scan = new Intent(this, DeviceScanActivity.class);
+        startActivityForResult(intent_scan, REQUEST_SCAN);
+        //this.deviceName = "Polar H7";
+        //this.deviceAddress = "00:22:D0:85:88:8E";
+
+        // wait for activity result to proceed with device address
+    }
 
 
-        this.deviceName = "Polar H7";
-        this.deviceAddress = "00:22:D0:85:88:8E";
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        Log.i(TAG, "Activity resulted");
+        // Make sure this is the scan result
+        if (requestCode == REQUEST_SCAN) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                this.deviceAddress = data.getStringExtra("deviceAddr");
+                Log.i(TAG, "User selected device with address " + this.deviceAddress);
+                startBlueService();
+            }
+        }
+    }
+
+    private void startBlueService() {
         final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
         startService(blueServiceIntent);
         bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);

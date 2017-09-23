@@ -51,8 +51,6 @@ public class DeviceScanActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Toast.makeText(this, "device scan on create", Toast.LENGTH_SHORT).show();
-
         // getActionBar().setTitle(R.string.title_devices);
 
         // Use this check to determine whether BLE is supported on the device.  Then you can
@@ -163,7 +161,10 @@ public class DeviceScanActivity extends ListActivity {
         if (device == null)
             return;
 
-        //TODO return value to main activity here
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("deviceAddr", device.getAddress());
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
     }
 
     private void init() {

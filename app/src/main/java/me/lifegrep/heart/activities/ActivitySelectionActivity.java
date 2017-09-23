@@ -62,8 +62,7 @@ public class ActivitySelectionActivity extends AppCompatActivity {
 
         listView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
-            public boolean onChildClick(ExpandableListView parent, View v,
-                                        int groupPosition, int childPosition, long id) {
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
                 String data = listDetail.get(listTitle.get(groupPosition)).get(childPosition);
                 //TODO add user, type and posture
                 DailyActivity ev = new DailyActivity(0, "event", data);
@@ -75,7 +74,7 @@ public class ActivitySelectionActivity extends AppCompatActivity {
 
 
         FloatingActionButton fabinput = (FloatingActionButton) findViewById(R.id.fabinput);
-        fabinput.setOnClickListener(new View.OnClickListener() {
+        fabinput.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 String data = writer.getData();
