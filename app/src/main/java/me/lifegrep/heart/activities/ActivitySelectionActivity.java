@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import me.lifegrep.heart.R;
-import me.lifegrep.heart.model.LifeEvent;
+import me.lifegrep.heart.model.DailyActivity;
 import me.lifegrep.heart.services.ScratchWriter;
 import me.lifegrep.heart.adapters.CustomExpandableListAdapter;
 import me.lifegrep.heart.adapters.DailyActivitiesList;
@@ -65,8 +65,8 @@ public class ActivitySelectionActivity extends AppCompatActivity {
             public boolean onChildClick(ExpandableListView parent, View v,
                                         int groupPosition, int childPosition, long id) {
                 String data = listDetail.get(listTitle.get(groupPosition)).get(childPosition);
-                //TODO add user and type
-                LifeEvent ev = new LifeEvent(0, "event", data);
+                //TODO add user, type and posture
+                DailyActivity ev = new DailyActivity(0, "event", data);
                 writer.saveData(ev.toCSV());
                 Toast.makeText(getApplicationContext(), data, Toast.LENGTH_LONG).show();
                 return false;

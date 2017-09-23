@@ -1,41 +1,51 @@
 package me.lifegrep.heart.model;
 
-/**
- * Created with IntelliJ IDEA.
- * User: ju
- * Date: 3/30/13
- */
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-public class LifeEvent {
+public class DailyActivity {
 
     protected int user;
-    protected String type;
     protected Date dt;
-    protected Object value;
+    protected String type;      // START or STOP
+
+    protected String posture;
+    protected String activityName;
+
+    //TODO switch to Enum
+    // POSTURE VALUES
+    public final static String PT_MOVE = "moving";
+    public final static String PT_STAND = "standing";
+    public final static String PT_SIT = "sitting";
+    public final static String PT_LIE = "lying down";
 
     public final static String fmtDateDB = "yyyy-MM-dd HH:mm:ss";
 
-    protected LifeEvent() {}
+    protected DailyActivity() {}
 
-    public LifeEvent(int user, String type, Object value) {
+    public DailyActivity(int user, String type, String activityName) {
         this.user = user;
         this.type = type;
-        this.value = value;
+        this.activityName = activityName;
         this.dt = new Date();
     }
 
-    public LifeEvent(int user, String type, Object value, Date dt) {
+    public DailyActivity(int user, String type, String activityName, String posture) {
         this.user = user;
         this.type = type;
-        this.value = value;
+        this.activityName = activityName;
+        this.posture = posture;
+        this.dt = new Date();
+    }
+
+    public DailyActivity(int user, String type, String activityName, String posture, Date dt) {
+        this.user = user;
+        this.type = type;
+        this.activityName = activityName;
+        this.posture = posture;
         this.dt = dt;
     }
 
@@ -54,14 +64,15 @@ public class LifeEvent {
         JSONObject data = new JSONObject();
         JSONObject event = new JSONObject();
 
-        // build event with dt, type and value(s)
-        event.put("type", this.type);
+        // build event with dt, type and activityName(s)
         event.put("dt", new SimpleDateFormat(fmtDateDB).format(this.getDt()));
-        event.put("value", value);
+        event.put("type", this.type);
+        event.put("posture", posture);
+        event.put("activityName", activityName);
 
         // build data with event and user
-        data.put("event", event);
         data.put("user", this.user);
+        data.put("event", event);
 
         return data;
     }
@@ -77,9 +88,11 @@ public class LifeEvent {
         StringBuilder sb = new StringBuilder();
         sb.append(new SimpleDateFormat(fmtDateDB).format(this.getDt()));
         sb.append(",");
-        sb.append(this.getValue());
+        sb.append(this.getActivityName());
         sb.append(",");
         sb.append(this.getType());
+        sb.append(",");
+        sb.append(this.getPosture());
         return sb.toString();
     }
 
@@ -106,11 +119,9 @@ public class LifeEvent {
         return dt;
     }
 
-    public void setDt(Date dt) {
-        this.dt = dt;
-    }
+    public String getPosture() { return posture; }
 
-    public Object getValue() {
-        return value;
+    public Object getActivityName() {
+        return activityName;
     }
 }

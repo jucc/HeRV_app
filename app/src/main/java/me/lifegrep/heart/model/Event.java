@@ -10,10 +10,10 @@ public interface Event {
     public final static String fmtDateDB = "yyyy-MM-dd HH:mm:ss";
 
     //TODO switch to Enum
-    public final static String TYPE_HEARTBEAT = "heartbeat";
-    public final static String TYPE_START = "start";
-    public final static String TYPE_STOP = "stop";
-    public final static String TYPE_EVENT = "event";
+    public final static String TP_HEARTBEAT = "heartbeat";
+    public final static String TP_START = "start";
+    public final static String TP_STOP = "stop";
+    public final static String TP_EVENT = "event";
 
     /**
      * Converts the event to the json format expected in lifegrep
@@ -40,8 +40,5 @@ public interface Event {
 
     public Date getDt();
 
-    public void setDt(Date dt);
-
-    public Object getValue();
 }
 
