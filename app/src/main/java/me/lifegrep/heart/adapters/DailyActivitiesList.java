@@ -21,27 +21,33 @@ public class DailyActivitiesList {
 
         List<String> laying = new ArrayList<String>();
         laying.add("sleeping");
-        laying.add("laying down resting");
+        laying.add("resting");
 
         List<String> sitting = new ArrayList<String>();
-        sitting.add("reading");
-        sitting.add("playing");
-        sitting.add("sitting resting");
+        sitting.add("study/work");
+        sitting.add("lecture watching");
         sitting.add("eating");
-        sitting.add("commute");
+        sitting.add("playing");
+        sitting.add("leisure (TV, read,...)");
+        sitting.add("talking");
+        sitting.add("driving");
 
         List<String> standing = new ArrayList<String>();
         standing.add("household chores");
-        standing.add("standing still");
-        standing.add("line");
+        standing.add("waiting");
+        standing.add("presenting lecture");
+        standing.add("talking");
 
         List<String> moving = new ArrayList<String>();
-        moving.add("exercise");
-        moving.add("walking commute");
+        moving.add("walking (leisure, no hurry)");
+        moving.add("walking briskly");
+        moving.add("low intensity exercise");
+        moving.add("high intensity exercise");
 
         listDetail.put("LAYING DOWN", laying);
         listDetail.put("SITTING", sitting);
         listDetail.put("STANDING", standing);
+
         listDetail.put("MOVING", moving);
 
         return listDetail;

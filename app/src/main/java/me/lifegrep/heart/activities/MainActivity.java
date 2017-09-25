@@ -14,12 +14,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -33,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
     Switch heartSwitch;
     TextView heartbeat;
     EditText userID;
+    Spinner posture;
+    FloatingActionButton button_start, button_stop;
 
     private BluetoothAdapter blueAdapter;
     private BluetoothLeService blueService;
@@ -52,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
         heartSwitch = (Switch) findViewById(R.id.sw_heart);
         heartbeat = (TextView) findViewById(R.id.tv_heartbeat);
         userID = (EditText) findViewById(R.id.et_userID);
+        posture = (Spinner) findViewById(R.id.sp_posture);
+        button_start = (FloatingActionButton) findViewById(R.id.ab_start);
+        button_stop = (FloatingActionButton) findViewById(R.id.ab_stop);
     }
 
 
@@ -67,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         }
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         String savedAddress = preferences.getString("deviceAddress", null);
+        //TODO shared preferences does not seem to be be kept on destroy, only on pause
         if (savedAddress != null)
         {
             deviceAddress = savedAddress;
@@ -127,10 +135,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Listener registered for fab_start
+    // Listener registered for ab_start
     public void startActivity(View view) {
         Intent intent_activityselection = new Intent(this, ActivitySelectionActivity.class);
         startActivity(intent_activityselection);
+        button_stop.setEnabled(true);
+        button_start.setEnabled(false);
+    }
+
+    // Listener registered for ab_stop
+    public void stopActivity(View view) {
+        //TODO find which activity has started and stop it;
+        button_stop.setEnabled(false);
+        button_start.setEnabled(true);
     }
 
     // Listener registered for sw_heart toggle
