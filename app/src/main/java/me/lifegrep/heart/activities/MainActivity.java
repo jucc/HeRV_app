@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -64,23 +65,28 @@ public class MainActivity extends AppCompatActivity {
             heartbeat.setText(R.string.text_monitornobluetooth);
             return;
         }
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        String savedAddress = preferences.getString("deviceAddress", null);
+        if (savedAddress != null)
+        {
+            deviceAddress = savedAddress;
+            Log.i(TAG, "Saved device address recovered: " + savedAddress);
+        }
 
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        if (deviceAddress == null ) {
-            turnOnMonitor();
-        } else {
-            startBlueService();
-        }
+        turnOnMonitor();
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.i(TAG, "Activity on pause");
         // TODO how to check that they are running to unbind/unregister??
         //unregisterReceiver(gattUpdateReceiver);
         //unbindService(serviceConnection);
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        preferences.edit().putString("deviceAddress", this.deviceAddress);
+        Log.i(TAG, "Activity on pause. Saving preferences.");
     }
 
 
@@ -142,21 +148,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private void turnOnMonitor() {
 
-        // if there is no bluetooth adapter yet, get one
-        if (this.blueAdapter == null) {
-            this.blueAdapter = getBluetoothAdapter();
-            if (this.blueAdapter == null) {
-                heartbeat.setText(R.string.text_monitornobluetooth);
-            } else {
-                heartbeat.setText(R.string.text_monitorconnecting);
-            }
-        }
-        // find the device
-        Intent intent_scan = new Intent(this, DeviceScanActivity.class);
-        startActivityForResult(intent_scan, REQUEST_SCAN);
         //this.deviceName = "Polar H7";
         //this.deviceAddress = "00:22:D0:85:88:8E";
-
+        if (this.deviceAddress == null) {
+            // find the device
+            Intent intent_scan = new Intent(this, DeviceScanActivity.class);
+            startActivityForResult(intent_scan, REQUEST_SCAN);
+        } else {
+            startBlueService();
+        }
         // wait for activity result to proceed with device address
     }
 
@@ -178,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startBlueService() {
         final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
+        //TODO can I figure out if the service is already started? Does it make a difference?
         startService(blueServiceIntent);
         bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
@@ -239,7 +240,10 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
             // Automatically connects to the device upon successful start-up initialization.
-            blueService.connect(deviceAddress);
+            if (!blueService.connect(deviceAddress)) {
+                Log.e(TAG, "Unable to connect to selected device");
+                finish();
+            }
         }
 
         @Override

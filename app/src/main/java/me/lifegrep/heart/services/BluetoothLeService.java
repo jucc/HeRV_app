@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.UUID;
 
 import me.lifegrep.heart.R;
+import me.lifegrep.heart.activities.MainActivity;
 import me.lifegrep.heart.model.Heartbeat;
 
 /**
@@ -82,10 +83,12 @@ public class BluetoothLeService extends Service {
 
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        this.showNotification();
+        this.showForegroundNotification("Heart rate monitor running");
         // If we get killed, after returning from here, restart
         return START_STICKY;
     }
+
+
 
 
     // Implements callback methods for GATT events that the app cares about.  For example,
@@ -243,6 +246,7 @@ public class BluetoothLeService extends Service {
                 mConnectionState = STATE_CONNECTING;
                 return true;
             } else {
+                mBluetoothGatt = null;
                 return false;
             }
         }
@@ -319,6 +323,32 @@ public class BluetoothLeService extends Service {
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         notificationMgr.notify(NOTIFICATION_EX, notification);
+    }
+
+    /**
+     * https://gist.github.com/kristopherjohnson/6211176
+     **/
+    private void showForegroundNotification(String contentText) {
+        // Create intent that will bring our app to the front, as if it was tapped in launcher
+        Intent showTaskIntent = new Intent(getApplicationContext(), MainActivity.class);
+        showTaskIntent.setAction(Intent.ACTION_MAIN);
+        showTaskIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        showTaskIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(
+                getApplicationContext(),
+                0,
+                showTaskIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Notification notification = new Notification.Builder(getApplicationContext())
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(contentText)
+                .setSmallIcon(R.drawable.notification_icon)
+                .setWhen(System.currentTimeMillis())
+                .setContentIntent(contentIntent)
+                .build();
+        startForeground(NOTIFICATION_EX, notification);
     }
 
     /**
@@ -461,5 +491,10 @@ public class BluetoothLeService extends Service {
         final int heartRate = characteristic.getIntValue(format, 1);
         Log.d(TAG, String.format("Received heart rate: %d", heartRate));
         return heartRate;
+    }
+
+    @Override
+    public void onDestroy() {
+        notificationMgr.cancel(NOTIFICATION_EX);
     }
 }
