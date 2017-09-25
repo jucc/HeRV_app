@@ -4,15 +4,16 @@
  */
 package me.lifegrep.heart.adapters;
 
+import android.widget.BaseAdapter;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 
 /**
- * TODO instead of a fixed list, read from database and allow the user to create custom activities
- */
-
+ * DEPRECATED
+**/
 public class DailyActivitiesList {
 
     public static HashMap<String, List<String>> getData() {

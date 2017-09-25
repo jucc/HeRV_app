@@ -21,6 +21,9 @@ import me.lifegrep.heart.services.ScratchWriter;
 import me.lifegrep.heart.adapters.CustomExpandableListAdapter;
 import me.lifegrep.heart.adapters.DailyActivitiesList;
 
+/**
+ * DEPRECATED
+ */
 public class ActivitySelectionActivity extends AppCompatActivity {
 
     HashMap<String, List<String>> listDetail;

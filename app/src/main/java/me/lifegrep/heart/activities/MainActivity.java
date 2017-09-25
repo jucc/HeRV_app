@@ -20,6 +20,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -35,8 +37,9 @@ public class MainActivity extends AppCompatActivity {
     Switch heartSwitch;
     TextView heartbeat;
     EditText userID;
-    Spinner posture;
+    Spinner posture, dailyActivities;
     FloatingActionButton button_start, button_stop;
+    ArrayAdapter<CharSequence> postureAdapter, sitAdapter, lieDownAdapter, standAdapter;
 
     private BluetoothAdapter blueAdapter;
     private BluetoothLeService blueService;
@@ -57,8 +60,45 @@ public class MainActivity extends AppCompatActivity {
         heartbeat = (TextView) findViewById(R.id.tv_heartbeat);
         userID = (EditText) findViewById(R.id.et_userID);
         posture = (Spinner) findViewById(R.id.sp_posture);
+        dailyActivities = (Spinner) findViewById(R.id.sp_activity);
         button_start = (FloatingActionButton) findViewById(R.id.ab_start);
         button_stop = (FloatingActionButton) findViewById(R.id.ab_stop);
+
+        postureAdapter = ArrayAdapter.createFromResource(this, R.array.postures, android.R.layout.simple_spinner_item);
+        lieDownAdapter = ArrayAdapter.createFromResource(this, R.array.activities_lying, android.R.layout.simple_spinner_item);
+        sitAdapter     = ArrayAdapter.createFromResource(this, R.array.activities_sit, android.R.layout.simple_spinner_item);
+        standAdapter   = ArrayAdapter.createFromResource(this, R.array.activities_stand, android.R.layout.simple_spinner_item);
+
+        // Specify the layout to use when the list of choices appears
+        postureAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        lieDownAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        standAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Apply the adapter to the spinner
+        posture.setAdapter(postureAdapter);
+
+        posture.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                Log.i(TAG, "Selected value on spinner: " + posture.getSelectedItem().toString());
+                switch(posture.getSelectedItem().toString().toLowerCase()) {
+                    case "sitting":
+                        dailyActivities.setAdapter(sitAdapter);
+                        break;
+                    case  "lying down":
+                        dailyActivities.setAdapter(lieDownAdapter);
+                        break;
+                    case "standing":
+                        dailyActivities.setAdapter(standAdapter);
+                        break;
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {}
+        });
     }
 
 
@@ -135,10 +175,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // Listener registered for posture spinner changed
+    public void selectPosture() {
+
+    }
+
     // Listener registered for ab_start
     public void startActivity(View view) {
-        Intent intent_activityselection = new Intent(this, ActivitySelectionActivity.class);
-        startActivity(intent_activityselection);
+        //TODO write activity started
         button_stop.setEnabled(true);
         button_start.setEnabled(false);
     }

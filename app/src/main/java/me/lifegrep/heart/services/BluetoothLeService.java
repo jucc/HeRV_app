@@ -102,9 +102,7 @@ public class BluetoothLeService extends Service {
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
-                // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" +
-                        mBluetoothGatt.discoverServices());
+                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
@@ -161,11 +159,12 @@ public class BluetoothLeService extends Service {
     }
 
     private void saveDataToCSV(Heartbeat beat) {
-        if (writer != null) {
-            writer.saveData(beat.toCSV());
-        } else {
-            Log.w(TAG, "Scratch writer not available, RR not recorded");
+        if (writer == null) {
+            String dt = formatDateFilename.format(Calendar.getInstance().getTime());
+            writer = new ScratchWriter(this, "rr" + dt + ".csv");
+            Log.w(TAG, "Recreating writer at writng time");
         }
+        writer.saveData(beat.toCSV());
     }
 
     public class LocalBinder extends Binder {
@@ -214,10 +213,6 @@ public class BluetoothLeService extends Service {
             return false;
         }
 
-        /* creates a file to store a csv with a list of heartbeats */
-        String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-        writer = new ScratchWriter(this, "rr" + dt + ".csv");
-
         return true;
     }
 
@@ -256,12 +251,20 @@ public class BluetoothLeService extends Service {
             Log.w(TAG, "Device not found.  Unable to connect.");
             return false;
         }
+
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         Log.d(TAG, "Trying to create a new connection.");
         mBluetoothDeviceAddress = address;
         mConnectionState = STATE_CONNECTING;
+
+        /* creates a file to store a csv with a list of heartbeats */
+        if (writer == null) {
+            String dt = formatDateFilename.format(Calendar.getInstance().getTime());
+            writer = new ScratchWriter(this, "rr" + dt + ".csv");
+        }
+
         return true;
     }
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="postures">
+        <item>Lying down</item>
+        <item>Sitting</item>
+        <item>Standing</item>
+    </string-array>
+    <string-array name="activities_lying">
+        <item>Sleeping</item>
+        <item>Resting</item>
+        <item>Relaxing (Read, Watch TV, Music,...)</item>
+    </string-array>
+    <string-array name="activities_sit">
+        <item>Studying/Working</item>
+        <item>Resting</item>
+        <item>Relaxing (Read, Watch TV, Music,...)</item>
+        <item>Eating</item>
+        <item>Playing games</item>
+        <item>Talking/Interacting with someone</item>
+        <item>Attending (lectures, meetings,...)</item>
+        <item>Driving</item>
+    </string-array>
+    <string-array name="activities_stand">
+        <item>Household/manual Chores</item>
+        <item>Waiting (queues, bus stops,...)</item>
+        <item>Presenting (lectures, meetings,...)</item>
+        <item>Walking (no hurry)</item>
+        <item>Walking briskly</item>
+        <item>Low intensity exercise</item>
+        <item>High intensity exercise</item>
+    </string-array>
+</resources>
