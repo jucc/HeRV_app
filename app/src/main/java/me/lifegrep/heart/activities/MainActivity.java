@@ -1,7 +1,6 @@
 package me.lifegrep.heart.activities;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
@@ -27,6 +26,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Date;
 
@@ -49,9 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothAdapter blueAdapter;
     private BluetoothLeService blueService;
+    private boolean serviceConnected;
 
-    private String deviceName;
-    private String deviceAddress;
+    private String deviceAddress; // "00:22:D0:85:88:8E";
 
     private final int REQUEST_SCAN = 1;
 
@@ -63,12 +63,13 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         heartSwitch = (Switch) findViewById(R.id.sw_heart);
+        heartSwitch.setEnabled(false);
         heartbeat = (TextView) findViewById(R.id.tv_heartbeat);
-        userID = (EditText) findViewById(R.id.et_userID);
         posture = (Spinner) findViewById(R.id.sp_posture);
         dailyActivities = (Spinner) findViewById(R.id.sp_activity);
         button_start = (FloatingActionButton) findViewById(R.id.ab_start);
         button_stop = (FloatingActionButton) findViewById(R.id.ab_stop);
+        userID = (EditText) findViewById(R.id.et_userID);
 
         postureAdapter = ArrayAdapter.createFromResource(this, R.array.postures, android.R.layout.simple_spinner_item);
         lieDownAdapter = ArrayAdapter.createFromResource(this, R.array.activities_lying, android.R.layout.simple_spinner_item);
@@ -87,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
         posture.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                Log.i(TAG, "Selected value on spinner: " + posture.getSelectedItem().toString());
                 switch(posture.getSelectedItem().toString().toLowerCase()) {
                     case "sitting":
                         dailyActivities.setAdapter(sitAdapter);
@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
                         dailyActivities.setAdapter(standAdapter);
                         break;
                 }
-
             }
 
             @Override
@@ -109,15 +108,16 @@ public class MainActivity extends AppCompatActivity {
 
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Log.i(TAG, "Activity on resume");
+    protected void onStart() {
+        super.onStart();
+        Log.i(TAG, "Activity starting");
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             heartSwitch.setEnabled(false);
             heartbeat.setText(R.string.text_monitornobluetooth);
             return;
         }
+
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         String savedAddress = preferences.getString("deviceAddress", null);
         //TODO shared preferences does not seem to be be kept on destroy, only on pause
@@ -126,21 +126,31 @@ public class MainActivity extends AppCompatActivity {
             deviceAddress = savedAddress;
             Log.i(TAG, "Saved device address recovered: " + savedAddress);
         }
-
+        startMonitoringService();
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        turnOnMonitor();
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
 
     @Override
     protected void onPause() {
         super.onPause();
-        // TODO how to check that they are running to unbind/unregister??
-        //unregisterReceiver(gattUpdateReceiver);
-        //unbindService(serviceConnection);
+        Log.i(TAG, "Activity on pause");
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG, "Activity stopping");
+        unregisterReceiver(gattUpdateReceiver);
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         preferences.edit().putString("deviceAddress", this.deviceAddress);
-        Log.i(TAG, "Activity on pause. Saving preferences.");
     }
 
 
@@ -149,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.i(TAG, "Activity on destroy");
         // TODO how to check that they are running to unbind/unregister??
-        unregisterReceiver(gattUpdateReceiver);
         if (blueService != null) {
             unbindService(serviceConnection);
             blueService = null;
@@ -181,11 +190,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Listener registered for posture spinner changed
-    public void selectPosture() {
-
-    }
-
     // Listener registered for ab_start
     public void startActivity(View view) {
         DailyActivity activity = new DailyActivity(Event.TP_START,
@@ -199,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
         button_start.setBackgroundColor(Color.GRAY);
         button_start.setEnabled(false);
         button_start.setClickable(false);
+        Toast.makeText(this, "Started activity: " + this.dailyActivities.getSelectedItem().toString(),Toast.LENGTH_LONG );
     }
 
     // Listener registered for ab_stop
@@ -212,73 +217,65 @@ public class MainActivity extends AppCompatActivity {
         button_stop.setBackgroundColor(Color.GRAY);
         button_stop.setEnabled(false);
         button_stop.setClickable(false);
+        Toast.makeText(this, "Stopped activity",Toast.LENGTH_LONG );
     }
 
+
     // Listener registered for sw_heart toggle
+    //TODO not working
     public void toggleHeartMonitor(View view) {
         if (heartSwitch.isChecked()) {
-            turnOnMonitor();
+            startMonitoringService();
         } else {
-            turnOffMonitor();
+            stopMonitoringService();
             heartbeat.setText(R.string.text_monitoroff);
         }
     }
 
+
     /**
      * Start the heart monitor service running in background
      */
-    private void turnOnMonitor() {
+    private void startMonitoringService() {
 
-        //this.deviceName = "Polar H7";
-        //this.deviceAddress = "00:22:D0:85:88:8E";
+        // search for devices
         if (this.deviceAddress == null) {
-            // find the device
             Intent intent_scan = new Intent(this, DeviceScanActivity.class);
             startActivityForResult(intent_scan, REQUEST_SCAN);
-        } else {
-            startBlueService();
+            return;
+            // when the activity returns the device address, this method will be called back
         }
-        // wait for activity result to proceed with device address
+
+        Log.i(TAG, "Starting service");
+        final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
+        startService(blueServiceIntent); // needed for Service not to die if activity unbinds
+        bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        Log.i(TAG, "Bound to service");
     }
 
 
+    /**
+     * Receives the selected device address result from the device scan activity
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        Log.i(TAG, "Activity resulted");
-        // Make sure this is the scan result
-        if (requestCode == REQUEST_SCAN) {
-            // Make sure the request was successful
-            if (resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_SCAN) { // Make sure this is the scan result
+            if (resultCode == RESULT_OK) { // Make sure the request was successful
                 this.deviceAddress = data.getStringExtra("deviceAddr");
                 Log.i(TAG, "User selected device with address " + this.deviceAddress);
-                startBlueService();
+                startMonitoringService();
             }
         }
     }
 
-    private void startBlueService() {
-        final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
-        //TODO can I figure out if the service is already started? Does it make a difference?
-        startService(blueServiceIntent);
-        bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
-        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        Log.i(TAG, "Activity bound");
 
-        heartSwitch.setChecked(true);
-        heartSwitch.setEnabled(false);
-    }
-
-    /**
-     * Stop the heart monitor service running in background
-     */
-    private void turnOffMonitor() {
+    private void stopMonitoringService() {
         Log.i(TAG, "Stopping service");
         unregisterReceiver(gattUpdateReceiver);
-        blueService.stopSelf();
         unbindService(serviceConnection);
+        Intent stopIntent = new Intent(this, BluetoothLeService.class);
+        blueService.stopService(stopIntent);
         blueService = null;
-        heartSwitch.setChecked(false);
     }
 
     /*
@@ -314,23 +311,26 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            Log.i(TAG, "ServiceConnection ON");
+            Log.i(TAG, "Service connected to activity");
             blueService = ((BluetoothLeService.LocalBinder) service).getService();
-            if (!blueService.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
-                finish();
-            }
-            // Automatically connects to the device upon successful start-up initialization.
             if (!blueService.connect(deviceAddress)) {
-                Log.e(TAG, "Unable to connect to selected device");
-                finish();
+                Log.e(TAG, "Unable to initialize Bluetooth");
+                heartSwitch.setChecked(false);
+                heartbeat.setText("Error in bluetooth initialization");
+                return;
             }
+            serviceConnected = true;
+            heartSwitch.setChecked(true);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            Log.i(TAG, "ServiceConnection OFF");
-            blueService = null;
+            Log.i(TAG, "Service disconnected!");
+            serviceConnected = false;
+            heartSwitch.setChecked(false);
+            unregisterReceiver(gattUpdateReceiver);
+            // maybe it was an accident? Let's try to get it back!
+            startMonitoringService();
         }
     };
 
@@ -353,13 +353,15 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 heartbeat.setText(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
             }
-            else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                Log.i(TAG, "Services discovered");
-                BluetoothGattCharacteristic hr =
-                        blueService.findHRMCharacteristic(blueService.getSupportedGattServices());
-                blueService.setCharacteristicNotification(hr, true);
-            }
-            // blatantly ignore any other actions because the activity doesn't really care
+            // blatantly ignore any other actions - activity doesn't really care, service should
+//            else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+//                Log.i(TAG, "Services discovered");
+                //TODO should move to inside BLE service? (On gatt connected)
+//                BluetoothGattCharacteristic hr =
+//                        blueService.findHRMCharacteristic(blueService.getSupportedGattServices());
+//                blueService.setCharacteristicNotification(hr, true);
+//            }
+
         }
     };
 }
