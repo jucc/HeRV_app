@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
@@ -27,8 +28,13 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.util.Date;
+
 import me.lifegrep.heart.R;
+import me.lifegrep.heart.model.DailyActivity;
+import me.lifegrep.heart.model.Event;
 import me.lifegrep.heart.services.BluetoothLeService;
+import me.lifegrep.heart.services.ScratchWriter;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -182,16 +188,30 @@ public class MainActivity extends AppCompatActivity {
 
     // Listener registered for ab_start
     public void startActivity(View view) {
-        //TODO write activity started
+        DailyActivity activity = new DailyActivity(Event.TP_START,
+                                                   this.dailyActivities.getSelectedItem().toString(),
+                                                   this.posture.getSelectedItem().toString(),
+                                                   new Date());
+        ScratchWriter writer = new ScratchWriter(this, "activities.csv");
+        writer.saveData(activity.toCSV());
         button_stop.setEnabled(true);
+        button_stop.setClickable(true);
+        button_start.setBackgroundColor(Color.GRAY);
         button_start.setEnabled(false);
+        button_start.setClickable(false);
     }
 
     // Listener registered for ab_stop
     public void stopActivity(View view) {
-        //TODO find which activity has started and stop it;
-        button_stop.setEnabled(false);
+        //TODO save selected activity on destroy to use it here instead of blanks
+        DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
+        ScratchWriter writer = new ScratchWriter(this, "activities.csv");
+        writer.saveData(activity.toCSV());
         button_start.setEnabled(true);
+        button_start.setClickable(true);
+        button_stop.setBackgroundColor(Color.GRAY);
+        button_stop.setEnabled(false);
+        button_stop.setClickable(false);
     }
 
     // Listener registered for sw_heart toggle

@@ -102,14 +102,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="69dp"
+        android:layout_marginStart="69dp"
         android:layout_marginTop="64dp"
         android:clickable="true"
         android:onClick="stopActivity"
         app:fabSize="mini"
         app:layout_constraintLeft_toRightOf="@+id/ab_start"
         app:layout_constraintTop_toBottomOf="@+id/sp_activity"
-        app:srcCompat="@android:drawable/ic_media_pause"
-        android:layout_marginStart="69dp" />
+        app:srcCompat="@android:drawable/ic_media_pause" />
 
 
 </android.support.constraint.ConstraintLayout>

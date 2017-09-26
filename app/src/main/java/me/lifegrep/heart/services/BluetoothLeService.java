@@ -73,8 +73,7 @@ public class BluetoothLeService extends Service {
     public final static String EXTRA_CHARACTERISTIC_UUID = INTENT_PREFIX+".EXTRA_CHARACTERISTIC_UUI";
     public final static String EXTRA_DATA = INTENT_PREFIX+".EXTRA_DATA";
 
-    public final static UUID UUID_HRMEASURE =
-            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+    public final static UUID UUID_HRMEASURE = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
     public final static int NOTIFICATION_EX = 1;
     private static SimpleDateFormat formatDateDB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -87,8 +86,6 @@ public class BluetoothLeService extends Service {
         // If we get killed, after returning from here, restart
         return START_STICKY;
     }
-
-
 
 
     // Implements callback methods for GATT events that the app cares about.  For example,

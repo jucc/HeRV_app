@@ -49,6 +49,13 @@ public class DailyActivity {
         this.dt = dt;
     }
 
+    public DailyActivity(String type, String activityName, String posture, Date dt) {
+        this.type = type;
+        this.activityName = activityName;
+        this.posture = posture;
+        this.dt = dt;
+    }
+
     /**
      * Converts the event to the json format expected in lifegrep
      * @return JSON =
