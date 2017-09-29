@@ -28,6 +28,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import me.lifegrep.heart.R;
@@ -54,7 +55,9 @@ public class MainActivity extends AppCompatActivity {
     private String deviceAddress; // "00:22:D0:85:88:8E";
 
     private final int REQUEST_SCAN = 1;
+    private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
 
+    //region lifecycle methods
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,36 +193,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    // Listener registered for ab_start
-    public void startActivity(View view) {
-        DailyActivity activity = new DailyActivity(Event.TP_START,
-                                                   this.dailyActivities.getSelectedItem().toString(),
-                                                   this.posture.getSelectedItem().toString(),
-                                                   new Date());
-        ScratchWriter writer = new ScratchWriter(this, "activities.csv");
-        writer.saveData(activity.toCSV());
-        button_stop.setEnabled(true);
-        button_stop.setClickable(true);
-        button_start.setBackgroundColor(Color.GRAY);
-        button_start.setEnabled(false);
-        button_start.setClickable(false);
-        Toast.makeText(this, "Started activity: " + this.dailyActivities.getSelectedItem().toString(),Toast.LENGTH_LONG );
-    }
-
-    // Listener registered for ab_stop
-    public void stopActivity(View view) {
-        //TODO save selected activity on destroy to use it here instead of blanks
-        DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
-        ScratchWriter writer = new ScratchWriter(this, "activities.csv");
-        writer.saveData(activity.toCSV());
-        button_start.setEnabled(true);
-        button_start.setClickable(true);
-        button_stop.setBackgroundColor(Color.GRAY);
-        button_stop.setEnabled(false);
-        button_stop.setClickable(false);
-        Toast.makeText(this, "Stopped activity",Toast.LENGTH_LONG );
-    }
-
+    //endregion
 
     // Listener registered for sw_heart toggle
     //TODO not working
@@ -278,13 +252,8 @@ public class MainActivity extends AppCompatActivity {
         blueService = null;
     }
 
-    /*
-    ------------------------------------------------------------------------------------------
-        BLUETOOTH LE SERVICE
-        - connects to device
-        - receives broadcasts to show HR on screen
-    ------------------------------------------------------------------------------------------
-    */
+    //region  BLUETOOTH LE SERVICE
+    // connects to device, receives broadcasts to show HR on screen
 
     /**
      * Get a bluetooth adapter and request the user to enable bluetooth if it is not yet enabled
@@ -323,6 +292,7 @@ public class MainActivity extends AppCompatActivity {
             heartSwitch.setChecked(true);
         }
 
+
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
             Log.i(TAG, "Service disconnected!");
@@ -353,15 +323,48 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 heartbeat.setText(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
             }
-            // blatantly ignore any other actions - activity doesn't really care, service should
-//            else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-//                Log.i(TAG, "Services discovered");
-                //TODO should move to inside BLE service? (On gatt connected)
-//                BluetoothGattCharacteristic hr =
-//                        blueService.findHRMCharacteristic(blueService.getSupportedGattServices());
-//                blueService.setCharacteristicNotification(hr, true);
-//            }
-
+            // blatantly ignore any other actions - activity doesn't really care, service does
         }
     };
+
+    //endregion
+
+
+    //region daily activities saving
+
+    // Listener registered for ab_start
+    public void startActivity(View view) {
+        DailyActivity activity = new DailyActivity(Event.TP_START,
+                this.dailyActivities.getSelectedItem().toString(),
+                this.posture.getSelectedItem().toString(),
+                new Date());
+        saveActivity(activity);
+        button_stop.setEnabled(true);
+        button_stop.setClickable(true);
+        button_start.setBackgroundColor(Color.GRAY);
+        button_start.setEnabled(false);
+        button_start.setClickable(false);
+        Toast.makeText(this, "Started activity: " + this.dailyActivities.getSelectedItem().toString(),Toast.LENGTH_LONG );
+    }
+
+    // Listener registered for ab_stop
+    public void stopActivity(View view) {
+        //TODO save selected activity on destroy to use it here instead of blanks
+        DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
+        saveActivity(activity);
+        button_start.setEnabled(true);
+        button_start.setClickable(true);
+        button_stop.setBackgroundColor(Color.GRAY);
+        button_stop.setEnabled(false);
+        button_stop.setClickable(false);
+        Toast.makeText(this, "Stopped activity",Toast.LENGTH_LONG );
+    }
+
+    private void saveActivity(DailyActivity activity) {
+        String dt = formatActivityFilename.format(new Date());
+        ScratchWriter writer = new ScratchWriter(this, "act" + dt + ".csv");
+        writer.saveData(activity.toCSV());
+    }
+
+    //endregion
 }

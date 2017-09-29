@@ -8,9 +8,6 @@ package me.lifegrep.heart.services;
 import android.content.Context;
 import android.os.Environment;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,10 +23,28 @@ public class ScratchWriter {
     public ScratchWriter(Context context, String filename) {
         this.context = context;
         //this.filename = context.getFilesDir().getPath() + "/" + filename;
-        this.filename = Environment.getExternalStorageDirectory().getPath()+"/"+filename;
-        this.dirname = "hrv";
+        this.dirname = "HeRV";
+        this.filename = Environment.getExternalStorageDirectory().getPath() + "/" + dirname + "/" + filename;
+        checkFolder();
     }
 
+
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    public void checkFolder() {
+        String folder_main = "HeRV";
+        File f = new File(Environment.getExternalStorageDirectory(), folder_main);
+        if(!f.exists())
+        {
+            f.mkdir();
+        }
+    }
 
     public void saveData(String data) {
         FileWriter fw = null;
@@ -38,7 +53,8 @@ public class ScratchWriter {
             //TODO URGENT open file only once and close at the end
             fw = new FileWriter(filename, true);
             bw = new BufferedWriter(fw);
-            bw.write(data + "\n");
+            bw.newLine();
+            bw.write(data);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

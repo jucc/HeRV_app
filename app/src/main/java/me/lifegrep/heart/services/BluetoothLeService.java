@@ -77,9 +77,7 @@ public class BluetoothLeService extends Service {
 
     public final static int NOTIFICATION_EX = 1;
     private static SimpleDateFormat formatDateDB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static SimpleDateFormat formatDateFilename = new SimpleDateFormat("yyMMddHHmm");
-    private ScratchWriter writer;
-
+    private static SimpleDateFormat formatDateFilename = new SimpleDateFormat("yyMMddHH");
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         this.showForegroundNotification("Heart rate monitor running");
@@ -162,11 +160,8 @@ public class BluetoothLeService extends Service {
     }
 
     private void saveDataToCSV(Heartbeat beat) {
-        if (writer == null) {
-            String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-            writer = new ScratchWriter(this, "rr" + dt + ".csv");
-            Log.w(TAG, "Recreating writer at writng time");
-        }
+        String dt = formatDateFilename.format(Calendar.getInstance().getTime());
+        ScratchWriter writer = new ScratchWriter(this, "rr" + dt + ".csv");
         writer.saveData(beat.toCSV());
     }
 
@@ -257,11 +252,11 @@ public class BluetoothLeService extends Service {
         mBluetoothDeviceAddress = address;
         mConnectionState = STATE_CONNECTING;
 
-        /* creates a file to store a csv with a list of heartbeats */
-        if (writer == null) {
-            String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-            writer = new ScratchWriter(this, "rr" + dt + ".csv");
-        }
+//        /* creates a file to store a csv with a list of heartbeats */
+//        if (writer == null) {
+//            String dt = formatDateFilename.format(Calendar.getInstance().getTime());
+//            writer = new ScratchWriter(this, "rr" + dt + ".csv");
+//        }
 
         return true;
     }
