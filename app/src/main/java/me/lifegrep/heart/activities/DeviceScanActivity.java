@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,6 +35,7 @@ import android.widget.Toast;
 
 import me.lifegrep.heart.R;
 import me.lifegrep.heart.adapters.BleDevicesAdapter;
+import me.lifegrep.heart.services.BluetoothLeService;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -42,6 +44,7 @@ public class DeviceScanActivity extends ListActivity {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final long SCAN_PERIOD = 500;
+    private final static String TAG = DeviceScanActivity.class.getSimpleName();
 
     private BleDevicesAdapter leDeviceListAdapter;
     private BluetoothAdapter bluetoothAdapter;
@@ -53,23 +56,18 @@ public class DeviceScanActivity extends ListActivity {
 
         // getActionBar().setTitle(R.string.title_devices);
 
-        // Use this check to determine whether BLE is supported on the device.  Then you can
-        // selectively disable BLE-related features.
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Device does not support BLE");
             finish();
             return;
         }
 
-        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
-        // BluetoothAdapter through BluetoothManager.
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-        bluetoothAdapter = bluetoothManager.getAdapter();
-
-        // Checks if Bluetooth is supported on the device.
-        if (bluetoothAdapter == null) {
-            Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
+        // get the bluetooth adapter
+        final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        this.bluetoothAdapter = bluetoothManager.getAdapter();
+        if (this.bluetoothAdapter == null) {
+            Log.e(TAG, "Could not get bluetooth adapter");
             finish();
             return;
         }
@@ -85,8 +83,7 @@ public class DeviceScanActivity extends ListActivity {
         } else {
             menu.findItem(R.id.menu_stop).setVisible(true);
             menu.findItem(R.id.menu_scan).setVisible(false);
-            menu.findItem(R.id.menu_refresh).setActionView(
-                    R.layout.actionbar_indeterminate_progress);
+            menu.findItem(R.id.menu_refresh).setActionView(R.layout.actionbar_indeterminate_progress);
         }
         return true;
     }
@@ -119,26 +116,27 @@ public class DeviceScanActivity extends ListActivity {
     protected void onResume() {
         super.onResume();
 
-        Toast.makeText(this, "device scan on resume", Toast.LENGTH_SHORT).show();
+        Log.i(TAG, "Activity on resume");
 
-        // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
-        // fire an intent to display a dialog asking the user to grant permission to enable it.
+        // asks for the user to turn on bluetooth
         if (!bluetoothAdapter.isEnabled()) {
             final Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             return;
         }
-
         init();
     }
 
+    /**
+     * Returning from user authorizing to turn on bluetooth
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // User chose not to enable Bluetooth.
         if (requestCode == REQUEST_ENABLE_BT) {
-            if (resultCode == Activity.RESULT_CANCELED) {
+            if (resultCode == Activity.RESULT_CANCELED) { //user did not authorize
                 finish();
-            } else {
+            } else {    // authorized. Bluetooth ON.
                 init();
             }
         }
@@ -148,7 +146,6 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
         if (scanner != null) {
             scanner.stopScanning();
             scanner = null;
@@ -168,12 +165,14 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     private void init() {
+
         if (leDeviceListAdapter == null) {
             leDeviceListAdapter = new BleDevicesAdapter(getBaseContext());
             setListAdapter(leDeviceListAdapter);
         }
 
         if (scanner == null) {
+            Log.i(TAG, "Starting scanner");
             scanner = new Scanner(bluetoothAdapter, mLeScanCallback);
             scanner.startScanning();
         }
@@ -187,6 +186,7 @@ public class DeviceScanActivity extends ListActivity {
 
                 @Override
                 public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+                    Log.i(TAG, "received scan callback");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -214,6 +214,7 @@ public class DeviceScanActivity extends ListActivity {
 
         public void startScanning() {
             synchronized (this) {
+                Log.i(TAG, "start scanning");
                 isScanning = true;
                 start();
             }
@@ -221,6 +222,7 @@ public class DeviceScanActivity extends ListActivity {
 
         public void stopScanning() {
             synchronized (this) {
+                Log.i(TAG, "stop scanning");
                 isScanning = false;
                 bluetoothAdapter.stopLeScan(mLeScanCallback);
             }
