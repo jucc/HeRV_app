@@ -1,32 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="postures">
-        <item>Lying down</item>
-        <item>Sitting</item>
-        <item>Standing</item>
+        <item>lying down</item>
+        <item>sitting</item>
+        <item>standing</item>
     </string-array>
-    <string-array name="activities_lying">
+
+    <string-array name="activity_categories_names">
+        <item>sleep</item>
+        <item>eat</item>
+        <item>movement</item>
+        <item>exercise-low</item>
+        <item>exercise-high</item>
+        <item>household-chores</item>
+        <item>focused-active</item>
+        <item>focused-passive</item>
+        <item>leisure-active</item>
+        <item>leisure-passive</item>
+        <item>rest-active</item>
+        <item>rest-passive</item>
+        <item>relax</item>
+        <item>drive</item>
+    </string-array>
+
+    <!-- Values to be shown to the user in spinner. Must match the positions in activity_categories_names !-->
+    <string-array name="activity_categories_descriptors">
         <item>Sleeping</item>
-        <item>Resting</item>
-        <item>Relaxing (Read, Watch TV, Music,...)</item>
-    </string-array>
-    <string-array name="activities_sit">
-        <item>Studying/Working</item>
-        <item>Resting</item>
-        <item>Relaxing (Read, Watch TV, Music,...)</item>
         <item>Eating</item>
-        <item>Playing games</item>
-        <item>Talking/Interacting with someone</item>
-        <item>Attending (lectures, meetings,...)</item>
+        <item>Moving</item>
         <item>Driving</item>
-    </string-array>
-    <string-array name="activities_stand">
-        <item>Household/manual Chores</item>
-        <item>Waiting (queues, bus stops,...)</item>
-        <item>Presenting (lectures, meetings,...)</item>
-        <item>Walking (no hurry)</item>
-        <item>Walking briskly</item>
         <item>Low intensity exercise</item>
         <item>High intensity exercise</item>
+        <item>Household chores</item>
+        <item>Work (active) - Writing, drawing, typing...</item>
+        <item>Work (passive) - Reading, watching lectures, attending meetings...</item>
+        <item>Leisure (active) - Playing, singing...</item>
+        <item>Leisure (passive) - Watching TV, reading news, social media...</item>
+        <item>Rest (active) - Talking, brushing teeth...</item>
+        <item>Rest (passive) - Waiting on queues, public transport, car rides... </item>
+        <item>Relaxation - meditation, music listening...</item>
     </string-array>
+
 </resources>

@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     EditText userID;
     Spinner posture, dailyActivities;
     FloatingActionButton button_start, button_stop;
-    ArrayAdapter<CharSequence> postureAdapter, sitAdapter, lieDownAdapter, standAdapter;
+    ArrayAdapter<CharSequence> postureAdapter, categoriesAdapter;
 
     private BluetoothAdapter blueAdapter;
     private BluetoothLeService blueService;
@@ -74,39 +74,20 @@ public class MainActivity extends AppCompatActivity {
         button_stop = (FloatingActionButton) findViewById(R.id.ab_stop);
         userID = (EditText) findViewById(R.id.et_userID);
 
-        postureAdapter = ArrayAdapter.createFromResource(this, R.array.postures, android.R.layout.simple_spinner_item);
-        lieDownAdapter = ArrayAdapter.createFromResource(this, R.array.activities_lying, android.R.layout.simple_spinner_item);
-        sitAdapter     = ArrayAdapter.createFromResource(this, R.array.activities_sit, android.R.layout.simple_spinner_item);
-        standAdapter   = ArrayAdapter.createFromResource(this, R.array.activities_stand, android.R.layout.simple_spinner_item);
+        postureAdapter = ArrayAdapter.createFromResource(this,
+                                                         R.array.postures,
+                                                         android.R.layout.simple_spinner_item);
+        categoriesAdapter = ArrayAdapter.createFromResource(this,
+                                                            R.array.activity_categories_descriptors,
+                                                            android.R.layout.simple_spinner_item);
 
         // Specify the layout to use when the list of choices appears
         postureAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        lieDownAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        sitAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        standAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Apply the adapter to the spinner
         posture.setAdapter(postureAdapter);
-
-        posture.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                switch(posture.getSelectedItem().toString().toLowerCase()) {
-                    case "sitting":
-                        dailyActivities.setAdapter(sitAdapter);
-                        break;
-                    case  "lying down":
-                        dailyActivities.setAdapter(lieDownAdapter);
-                        break;
-                    case "standing":
-                        dailyActivities.setAdapter(standAdapter);
-                        break;
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {}
-        });
+        dailyActivities.setAdapter(categoriesAdapter);
     }
 
 
@@ -334,17 +315,19 @@ public class MainActivity extends AppCompatActivity {
 
     // Listener registered for ab_start
     public void startActivity(View view) {
-        DailyActivity activity = new DailyActivity(Event.TP_START,
-                this.dailyActivities.getSelectedItem().toString(),
-                this.posture.getSelectedItem().toString(),
-                new Date());
+        int position = dailyActivities.getSelectedItemPosition();
+        String curr_act = getResources().getStringArray(R.array.activity_categories_names)[position];
+        String curr_posture = this.posture.getSelectedItem().toString();
+        DailyActivity activity = new DailyActivity(Event.TP_START, curr_act, curr_posture, new Date());
         saveActivity(activity);
+
+        Toast.makeText(this, "Started: " + this.dailyActivities.getSelectedItem().toString(), Toast.LENGTH_LONG );
+
         button_stop.setEnabled(true);
         button_stop.setClickable(true);
         button_start.setBackgroundColor(Color.GRAY);
         button_start.setEnabled(false);
         button_start.setClickable(false);
-        Toast.makeText(this, "Started activity: " + this.dailyActivities.getSelectedItem().toString(),Toast.LENGTH_LONG );
     }
 
     // Listener registered for ab_stop
