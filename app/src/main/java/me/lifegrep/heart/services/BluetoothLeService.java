@@ -150,8 +150,10 @@ public class BluetoothLeService extends Service {
         if (UUID_HRMEASURE.equals(characteristic.getUuid())) {
             Heartbeat beat = extractFromHRMCharacteristic(characteristic);
             data = beat.toScreenString();
-            //TODO create a different service to deal with file writing
-            saveDataToCSV(beat);
+            //TODO create a different service or at least thread to deal with file writing
+            if (beat.getIntervals() != null ) {
+                saveDataToCSV(beat);
+            }
         } else {
             data = extractFromGeneralCharacteristic(characteristic);
         }

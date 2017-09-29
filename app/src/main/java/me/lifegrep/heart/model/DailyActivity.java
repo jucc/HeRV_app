@@ -95,9 +95,9 @@ public class DailyActivity {
         StringBuilder sb = new StringBuilder();
         sb.append(new SimpleDateFormat(fmtDateDB).format(this.getDt()));
         sb.append(",");
-        sb.append(this.getActivityName());
-        sb.append(",");
         sb.append(this.getType());
+        sb.append(",");
+        sb.append(this.getActivityName());
         sb.append(",");
         sb.append(this.getPosture());
         return sb.toString();
