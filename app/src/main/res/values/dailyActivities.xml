@@ -10,6 +10,7 @@
         <item>sleep</item>
         <item>eat</item>
         <item>movement</item>
+        <item>drive</item>
         <item>exercise-low</item>
         <item>exercise-high</item>
         <item>household-chores</item>
