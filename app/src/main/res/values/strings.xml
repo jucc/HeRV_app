@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">HeartRate Data</string>
+    <string name="app_name">HeRV</string>
     <string name="action_settings">Settings</string>
     <string name="title_devices">BLE Device Scan</string>
 

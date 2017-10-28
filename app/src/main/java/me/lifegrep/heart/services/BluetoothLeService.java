@@ -116,7 +116,7 @@ public class BluetoothLeService extends Service {
         Notification notification = new Notification.Builder(getApplicationContext())
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(contentText)
-                .setSmallIcon(R.drawable.notification_icon)
+                .setSmallIcon(R.drawable.herv_logo_temp)
                 .setWhen(System.currentTimeMillis())
                 .setContentIntent(contentIntent)
                 .build();

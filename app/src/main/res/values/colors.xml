@@ -3,4 +3,12 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="primary_material_dark_1">#2d3a42</color>
+    <color name="herv_primary_grey">#2d3a42</color>
+    <color name="accent_material_dark">#eb5058</color>
+    <color name="foreground_material_dark">#e4e4e4</color>
+    <color name="herv_light_grey">#e4e4e4</color>
+    <color name="herv_light_red">#f2877d</color>
+    <color name="herv_primary_red">#eb5058</color>
+    <color name="herv_aqua">#0bc1a9</color>
 </resources>

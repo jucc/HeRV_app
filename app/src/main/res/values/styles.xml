@@ -17,4 +17,11 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="HeRVpalette" parent="Theme.AppCompat.NoActionBar" >
+        <item name="colorPrimary">@color/herv_primary_grey</item>
+        <item name="colorPrimaryDark">@color/herv_primary_grey</item>
+        <item name="android:colorForeground">@color/herv_light_grey</item>
+        <item name="colorAccent">@color/herv_primary_red</item>
+    </style>
+
 </resources>
