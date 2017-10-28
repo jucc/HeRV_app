@@ -80,98 +80,50 @@ public class BluetoothLeService extends Service {
     private static SimpleDateFormat formatDateFilename = new SimpleDateFormat("yyMMddHH");
 
 
+    //region lifecycle management
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         this.showForegroundNotification("Heart rate monitor running");
         // If we get killed, after returning from here, restart
+        if (!getConnectedState()) {
+            deviceAddress = "00:22:D0:85:88:8E";
+            connect(deviceAddress);
+        }
         return START_STICKY;
     }
 
-
-    public boolean getConnectedState() {
-        return (mConnectionState == STATE_CONNECTED || mConnectionState == STATE_CONNECTING);
+    @Override
+    public void onDestroy() {
+        notificationMgr.cancel(NOTIFICATION_EX);
     }
 
     /**
-     * Implements callback methods for GATT events (connection to bluetooth server, in this case,
-     * polar H7 transmitter) that the app cares about.
+     * https://gist.github.com/kristopherjohnson/6211176
      **/
-    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
+    private void showForegroundNotification(String contentText) {
+        // Create intent that will bring our app to the front, as if it was tapped in launcher
+        Intent showTaskIntent = new Intent(getApplicationContext(), MainActivity.class);
+        showTaskIntent.setAction(Intent.ACTION_MAIN);
+        showTaskIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        showTaskIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            String intentAction;
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                intentAction = ACTION_GATT_CONNECTED;
-                mConnectionState = STATE_CONNECTED;
-                broadcastUpdate(intentAction);
-                Log.i(TAG, "Connected to GATT server.");
-                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+        PendingIntent contentIntent = PendingIntent.getActivity(
+                getApplicationContext(),
+                0,
+                showTaskIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
 
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                intentAction = ACTION_GATT_DISCONNECTED;
-                mConnectionState = STATE_DISCONNECTED;
-                Log.i(TAG, "Disconnected from GATT server.");
-                broadcastUpdate(intentAction);
-            }
-        }
-
-        @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.i(TAG, "Services discovered");
-                BluetoothGattCharacteristic hr = findHRMCharacteristic(getSupportedGattServices());
-                setCharacteristicNotification(hr, true);
-                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
-            } else {
-                Log.w(TAG, "Could not discover services: " + status);
-            }
-        }
-
-        @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-            }
-        }
-
-        @Override
-        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-        }
-    };
-
-    private void broadcastUpdate(final String action) {
-        final Intent intent = new Intent(action);
-        sendBroadcast(intent);
+        Notification notification = new Notification.Builder(getApplicationContext())
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText(contentText)
+                .setSmallIcon(R.drawable.notification_icon)
+                .setWhen(System.currentTimeMillis())
+                .setContentIntent(contentIntent)
+                .build();
+        startForeground(NOTIFICATION_EX, notification);
     }
 
-    /**
-     * Broadcasts data from a received updated characteristic
-     */
-    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
-        final Intent intent = new Intent(action);
-
-        String data;
-        if (UUID_HRMEASURE.equals(characteristic.getUuid())) {
-            Heartbeat beat = extractFromHRMCharacteristic(characteristic);
-            data = beat.toScreenString();
-            //TODO create a different service or at least thread to deal with file writing
-            if (beat.getIntervals() != null ) {
-                saveDataToCSV(beat);
-            }
-        } else {
-            data = extractFromGeneralCharacteristic(characteristic);
-        }
-        intent.putExtra(EXTRA_DATA, data);
-        sendBroadcast(intent);
-    }
-
-    private void saveDataToCSV(Heartbeat beat) {
-        String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-        ScratchWriter writer = new ScratchWriter(this, "rr" + dt + ".csv");
-        writer.saveData(beat.toCSV());
-    }
+    private final IBinder mBinder = new LocalBinder();
 
     public class LocalBinder extends Binder {
         public BluetoothLeService getService() {
@@ -186,16 +138,25 @@ public class BluetoothLeService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        // After using a given device, you should make sure that BluetoothGatt.close() is called
-        // such that resources are cleaned up properly.  In this particular example, close() is
-        // invoked when the UI is disconnected from the Service.
-        // close();
         return super.onUnbind(intent);
     }
 
-    private final IBinder mBinder = new LocalBinder();
+    /**
+     * After using a given BLE device, the app must call this method to ensure resources are
+     * released properly.
+     */
+    public void close() {
+        if (mBluetoothGatt == null) {
+            return;
+        }
+        mBluetoothGatt.close();
+        mBluetoothGatt = null;
+    }
+
+    //endregion
 
 
+    //region bluetooth management
     /** get a reference to BluetoothAdapter through BluetoothManager. */
     private BluetoothAdapter getBluetoothAdapter() {
         Log.i(TAG, "Initializing bluetooth adapter");
@@ -208,6 +169,10 @@ public class BluetoothLeService extends Service {
         }
         return mBluetoothManager.getAdapter();
     }
+    //endregion
+
+
+    //region gatt server connection management
 
     /**
      * Connects to the GATT server hosted on the Bluetooth LE device with specified address
@@ -245,28 +210,24 @@ public class BluetoothLeService extends Service {
                 return true;
             } else {
                 mBluetoothGatt = null; // unable to reconnect, try to create a new connection
+                mConnectionState = STATE_DISCONNECTED;
                 return false;
             }
         }
 
-        Log.i(TAG, "Creating a new connection to GAtt server.");
+        // no previous connected gatt server, starting a new one
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
             Log.e(TAG, "Device not found.  Unable to connect.");
             return false;
         }
-        Log.i(TAG, "Device found");
+        Log.i(TAG, "Device found. Creating a new connection to its GATT server");
         // We want to directly connect to the device, so we are setting autoConnect to false.
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+        //TODO test if connection was successful
         Log.i(TAG, "Connected to device's GAtt server");
         deviceAddress = address;
         mConnectionState = STATE_CONNECTING;
-
-//        /* creates a file to store a csv with a list of heartbeats */
-//        if (writer == null) {
-//            String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-//            writer = new ScratchWriter(this, "rr" + dt + ".csv");
-//        }
 
         return true;
     }
@@ -283,79 +244,75 @@ public class BluetoothLeService extends Service {
             return;
         }
         mBluetoothGatt.disconnect();
-    }
-
-    /**
-     * After using a given BLE device, the app must call this method to ensure resources are
-     * released properly.
-     */
-    public void close() {
-        if (mBluetoothGatt == null) {
-            return;
-        }
         mBluetoothGatt.close();
         mBluetoothGatt = null;
     }
 
-    /**
-     * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
-     * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
-     * callback.
-     */
-    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized");
-            return;
-        }
-        mBluetoothGatt.readCharacteristic(characteristic);
+    public boolean getConnectedState() {
+        return (mConnectionState == STATE_CONNECTED || mConnectionState == STATE_CONNECTING);
     }
 
     /**
-     * Show a notification while this service is running.
-     */
-    private void showNotification() {
-        notificationMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        int icon = R.drawable.ic_launcher;
-        CharSequence tickerText = "Hello";
-        long when = System.currentTimeMillis();
-
-        Notification notification = new Notification(icon, tickerText, when);
-
-        Context context = getApplicationContext();
-        CharSequence contentTitle = "My notification";
-        CharSequence contentText = "Hello World!";
-        Intent notificationIntent = new Intent(this, BluetoothLeService.class);
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-
-        notificationMgr.notify(NOTIFICATION_EX, notification);
-    }
-
-    /**
-     * https://gist.github.com/kristopherjohnson/6211176
+     * Implements callback methods for GATT events (connection to bluetooth server, in this case,
+     * polar H7 transmitter) that the app cares about.
      **/
-    private void showForegroundNotification(String contentText) {
-        // Create intent that will bring our app to the front, as if it was tapped in launcher
-        Intent showTaskIntent = new Intent(getApplicationContext(), MainActivity.class);
-        showTaskIntent.setAction(Intent.ACTION_MAIN);
-        showTaskIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        showTaskIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
 
-        PendingIntent contentIntent = PendingIntent.getActivity(
-                getApplicationContext(),
-                0,
-                showTaskIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            String intentAction;
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                intentAction = ACTION_GATT_CONNECTED;
+                mConnectionState = STATE_CONNECTED;
+                broadcastUpdate(intentAction);
+                Log.i(TAG, "Connected to GATT server.");
+                Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
 
-        Notification notification = new Notification.Builder(getApplicationContext())
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText(contentText)
-                .setSmallIcon(R.drawable.notification_icon)
-                .setWhen(System.currentTimeMillis())
-                .setContentIntent(contentIntent)
-                .build();
-        startForeground(NOTIFICATION_EX, notification);
-    }
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                intentAction = ACTION_GATT_DISCONNECTED;
+                mConnectionState = STATE_DISCONNECTED;
+                Log.i(TAG, "Disconnected from GATT server.");
+                broadcastUpdate(intentAction);
+                Log.i(TAG, "Trying to reconnect");
+                int i = 0;
+                //TODO move to a separate thread and let it sleep for a few seconds before trying again
+                while(!connect(deviceAddress)) {
+                    i++;
+                    if (i%100 == 0) {
+                        Log.i(TAG, "Tried " + i + " times...");
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.i(TAG, "Services discovered");
+                BluetoothGattCharacteristic hr = findHRMCharacteristic(getSupportedGattServices());
+                setCharacteristicNotification(hr, true);
+                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+            } else {
+                Log.w(TAG, "Could not discover services: " + status);
+            }
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            }
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+        }
+    };
+    //endregion
+
+
+    //region characteristic management
 
     /**
      * Enables or disables notification on a given characteristic.
@@ -410,6 +367,61 @@ public class BluetoothLeService extends Service {
         return null;
     }
 
+    /**
+     * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
+     * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
+     * callback.
+     */
+    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.readCharacteristic(characteristic);
+    }
+
+    //endregion
+
+
+    //region broadcast received characteristic
+
+    private void broadcastUpdate(final String action) {
+        final Intent intent = new Intent(action);
+        sendBroadcast(intent);
+    }
+
+    /**
+     * Broadcasts data from a received updated characteristic
+     */
+    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
+        final Intent intent = new Intent(action);
+
+        String data;
+        if (UUID_HRMEASURE.equals(characteristic.getUuid())) {
+            Heartbeat beat = extractFromHRMCharacteristic(characteristic);
+            data = beat.toScreenString();
+            //TODO create a different service or at least thread to deal with file writing
+            if (beat.getIntervals() != null ) {
+                saveDataToCSV(beat);
+            }
+        } else {
+            data = extractFromGeneralCharacteristic(characteristic);
+        }
+        intent.putExtra(EXTRA_DATA, data);
+        sendBroadcast(intent);
+    }
+
+    private void saveDataToCSV(Heartbeat beat) {
+        String dt = formatDateFilename.format(Calendar.getInstance().getTime());
+        ScratchWriter writer = new ScratchWriter(this, "rr" + dt + ".csv");
+        writer.saveData(beat.toCSV());
+    }
+
+    //endregion
+
+
+    //TODO move to a separate class to unclutter this
+    //region read info from GATT characteristics
 
     /**
      * Reads HR and RR (IBI) intervals from the Heart Rate Measurement Characteristic
@@ -499,8 +511,6 @@ public class BluetoothLeService extends Service {
         return heartRate;
     }
 
-    @Override
-    public void onDestroy() {
-        notificationMgr.cancel(NOTIFICATION_EX);
-    }
+    //endregion
+
 }

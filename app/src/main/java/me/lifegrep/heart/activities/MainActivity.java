@@ -100,17 +100,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (blueService != null) {
-            if (!blueService.getConnectedState()) {
-                Log.i(TAG, "Trying to reconnect to Gatt from already existing blue service");
-                blueService.connect(this.deviceAddress);
-            } else {
-                Log.i(TAG, "Blue service connected already");
-            }
-        } else {
-            Log.i(TAG, "New connection");
-            startMonitoringService();
-        }
+        startMonitoringService();
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
     }
 
@@ -176,6 +166,11 @@ public class MainActivity extends AppCompatActivity {
 
     //endregion
 
+
+    //region  BLUETOOTH LE SERVICE
+    // connects to service and receives broadcasts to show HR on screen
+
+
     // Listener registered for sw_heart toggle
     //TODO not working
     public void toggleHeartMonitor(View view) {
@@ -193,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void startMonitoringService() {
 
-        // search for devices
+        // search for devices TODO move this to blueservice
         if (this.deviceAddress == null) {
             Intent intent_scan = new Intent(this, DeviceScanActivity.class);
             startActivityForResult(intent_scan, REQUEST_SCAN);
@@ -206,10 +201,6 @@ public class MainActivity extends AppCompatActivity {
         startService(blueServiceIntent); // needed for Service not to die if activity unbinds
         bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         Log.i(TAG, "Bound to service");
-        if (blueService != null && !blueService.getConnectedState()) {
-            Log.i(TAG, "Connecting to GATT from startMonitoringService");
-            blueService.connect(this.deviceAddress);
-        }
     }
 
 
@@ -228,20 +219,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    //TODO figure out the order between disconnecting, unbinding and stopping the service
     private void stopMonitoringService() {
         Log.i(TAG, "Stopping service");
         unregisterReceiver(gattUpdateReceiver);
+        blueService.disconnect();
         unbindService(serviceConnection);
         Intent stopIntent = new Intent(this, BluetoothLeService.class);
         blueService.stopService(stopIntent);
         blueService = null;
     }
 
-    //region  BLUETOOTH LE SERVICE
-    // connects to device, receives broadcasts to show HR on screen
 
     /**
      * Get a bluetooth adapter and request the user to enable bluetooth if it is not yet enabled
+     * TODO can I start an activity from inside the service? If so, move this to the service, the activity should not be responsible for BT setting
      */
     private BluetoothAdapter getBluetoothAdapter() {
 
@@ -267,14 +259,6 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             Log.i(TAG, "Service connected to activity");
             blueService = ((BluetoothLeService.LocalBinder) service).getService();
-            //TODO do I need to do this here?
-            Log.i(TAG, "Using connect to gatt from service connected callback");
-            if (!blueService.connect(deviceAddress)) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
-                heartToggle.setChecked(false);
-                heartbeat.setText("Error in bluetooth initialization");
-                return;
-            }
             serviceConnected = true;
             heartToggle.setChecked(true);
         }
@@ -282,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            Log.i(TAG, "Service disconnected!");
+            Log.i(TAG, "Service disconnected from activity");
             serviceConnected = false;
             heartToggle.setChecked(false);
             unregisterReceiver(gattUpdateReceiver);
@@ -309,6 +293,10 @@ public class MainActivity extends AppCompatActivity {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 heartbeat.setText(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+            }
+
+            if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                heartbeat.setText("Disconnected");
             }
             // blatantly ignore any other actions - activity doesn't really care, service does
         }
