@@ -4,117 +4,133 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="me.lifegrep.heart.activities.MainActivity"
-    tools:layout_editor_absoluteY="25dp"
-    tools:layout_editor_absoluteX="0dp">
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    tools:context="me.lifegrep.heart.activities.MainActivity">
 
-    <Switch
-        android:id="@+id/sw_heart"
+
+    <!-- HEART RATE MONITORING -->
+
+    <ToggleButton
+        android:id="@+id/tg_heart"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="toggleHeartMonitor"
-        android:text="@string/text_monitorswitch"
-        app:layout_constraintTop_toBottomOf="parent"
-        android:layout_marginTop="32dp"
+        android:layout_height="96dp"
+        android:layout_marginTop="48dp"
+        android:checked="false"
+        android:fontFamily="monospace"
+        android:text="Heart Monitor"
+        android:textAlignment="center"
+        android:textColor="#eb5058"
+        android:textOff="Off"
+        android:textOn="On"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:typeface="monospace"
+        app:layout_constraintHorizontal_bias="0.099"
         app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginLeft="128dp" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
     <TextView
-        android:id="@+id/tv_heartbeat"
+        android:id="@+id/tv_heartrate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/text_monitoroff"
         android:textAlignment="center"
         android:textStyle="bold"
         android:typeface="monospace"
-        app:layout_constraintTop_toBottomOf="@+id/sw_heart"
-        android:layout_marginTop="32dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginLeft="128dp"/>
+        app:layout_constraintLeft_toRightOf="@+id/tg_heart"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tg_heart"
+        />
 
 
-    <Spinner
-        android:id="@+id/sp_posture"
+    <TextView
+        android:id="@+id/tv_intervals"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/text_monitoroff"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:typeface="monospace"
+        app:layout_constraintLeft_toRightOf="@+id/tg_heart"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_heartbeat"
-        android:layout_marginTop="64dp" />
+        app:layout_constraintBottom_toBottomOf="@+id/tg_heart"
+        />
 
+
+    <!-- ACTIVITY LOGGING -->
+
+    <RadioButton
+        android:id="@+id/rb_liedown"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lie Down"
+        app:layout_constraintTop_toBottomOf="@+id/tg_heart"
+        android:layout_marginTop="128dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/rb_sit" />
+
+    <RadioButton
+        android:id="@+id/rb_sit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sit"
+        app:layout_constraintTop_toBottomOf="@+id/tg_heart"
+        android:layout_marginTop="128dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"/>
+
+    <RadioButton
+        android:id="@+id/rb_stand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stand"
+        app:layout_constraintTop_toBottomOf="@+id/tg_heart"
+        android:layout_marginTop="128dp"
+        app:layout_constraintLeft_toRightOf="@+id/rb_sit"
+        app:layout_constraintRight_toRightOf="parent" />
 
     <Spinner
         android:id="@+id/sp_activity"
-        android:layout_width="256dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="64dp"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/sp_posture"
-        android:layout_marginTop="32dp"
-        android:layout_marginLeft="64dp" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/rb_sit" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/ab_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="128dp"
-        android:layout_marginTop="32dp"
-        android:clickable="true"
+        android:layout_marginTop="64dp"
         android:onClick="startActivity"
         app:fabSize="mini"
         app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.3"
         app:layout_constraintTop_toBottomOf="@+id/sp_activity"
-        app:srcCompat="@android:drawable/ic_media_play"
-        android:layout_marginStart="128dp" />
+        app:srcCompat="@android:drawable/ic_media_play" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/ab_stop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="69dp"
-        android:layout_marginStart="69dp"
-        android:layout_marginTop="32dp"
-        android:clickable="true"
+        android:layout_marginTop="64dp"
         android:onClick="stopActivity"
         app:fabSize="mini"
-        app:layout_constraintLeft_toRightOf="@+id/ab_start"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintHorizontal_bias="0.7"
         app:layout_constraintTop_toBottomOf="@+id/sp_activity"
         app:srcCompat="@android:drawable/ic_media_pause" />
-
-
-    <TextView
-        android:id="@+id/tv_userID"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="UserID"
-        app:layout_constraintTop_toBottomOf="@+id/ab_start"
-        android:layout_marginTop="110dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        android:layout_marginLeft="60dp"
-        android:layout_marginStart="60dp" />
-
-
-    <EditText
-        android:id="@+id/et_userID"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:inputType="number"
-        app:layout_constraintTop_toBottomOf="@+id/ab_start"
-        android:layout_marginTop="96dp"
-        app:layout_constraintLeft_toRightOf="@+id/tv_userID"
-        android:layout_marginLeft="60dp"
-        android:layout_marginStart="60dp" />
-
-    <Button
-        android:id="@+id/button"
-        style="@android:style/Widget.Material.Button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="34dp"
-        android:layout_marginTop="96dp"
-        android:background="@android:drawable/ic_menu_send"
-        android:text="Send"
-        app:layout_constraintLeft_toRightOf="@+id/et_userID"
-        app:layout_constraintTop_toBottomOf="@+id/ab_start" />
 
 
 </android.support.constraint.ConstraintLayout>
