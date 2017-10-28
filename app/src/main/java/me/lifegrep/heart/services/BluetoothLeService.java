@@ -55,11 +55,11 @@ public class BluetoothLeService extends Service {
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
-    private String mBluetoothDeviceAddress;
+    private String deviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private NotificationManager notificationMgr;
-    private int mConnectionState = STATE_DISCONNECTED;
 
+    private int mConnectionState = STATE_DISCONNECTED;
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
@@ -79,12 +79,18 @@ public class BluetoothLeService extends Service {
     private static SimpleDateFormat formatDateDB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static SimpleDateFormat formatDateFilename = new SimpleDateFormat("yyMMddHH");
 
+
+
     public int onStartCommand(Intent intent, int flags, int startId) {
         this.showForegroundNotification("Heart rate monitor running");
         // If we get killed, after returning from here, restart
         return START_STICKY;
     }
 
+
+    public boolean getConnectedState() {
+        return (mConnectionState == STATE_CONNECTED || mConnectionState == STATE_CONNECTING);
+    }
 
     /**
      * Implements callback methods for GATT events (connection to bluetooth server, in this case,
@@ -214,7 +220,10 @@ public class BluetoothLeService extends Service {
 
         Log.i(TAG, "Connecting to gatt server in bluetooth device");
 
-        if (address == null) {
+        if (address != null) {
+            deviceAddress = address;
+        }
+        if (deviceAddress == null) {
             Log.e(TAG, "Unspecified address.");
             return false;
         }
@@ -222,26 +231,25 @@ public class BluetoothLeService extends Service {
         if (this.mBluetoothAdapter == null) {
             BluetoothAdapter adapter = getBluetoothAdapter();
             if (adapter == null) {
-                Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
+                Log.e(TAG, "Unable to obtain BluetoothAdapter.");
                 return false;
             }
             this.mBluetoothAdapter = adapter;
         }
 
-        // Previously connected device.  Try to reconnect.
-        if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress) && mBluetoothGatt != null) {
-            Log.i(TAG, "Trying to use an existing mBluetoothGatt for connection.");
+        // try to reconnect to a previously connected GAtt server
+        if (mBluetoothGatt != null) {
+            Log.i(TAG, "Trying to use an existing GAtt server connection.");
             if (mBluetoothGatt.connect()) {
                 mConnectionState = STATE_CONNECTING;
                 return true;
             } else {
-                mBluetoothGatt = null;
+                mBluetoothGatt = null; // unable to reconnect, try to create a new connection
                 return false;
             }
         }
 
-        // new connection to device
-        Log.i(TAG, "Device not previously connected, creating a new connection.");
+        Log.i(TAG, "Creating a new connection to GAtt server.");
         final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
         if (device == null) {
             Log.e(TAG, "Device not found.  Unable to connect.");
@@ -250,8 +258,8 @@ public class BluetoothLeService extends Service {
         Log.i(TAG, "Device found");
         // We want to directly connect to the device, so we are setting autoConnect to false.
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
-        Log.i(TAG, "Connected to device's gatt server");
-        mBluetoothDeviceAddress = address;
+        Log.i(TAG, "Connected to device's GAtt server");
+        deviceAddress = address;
         mConnectionState = STATE_CONNECTING;
 
 //        /* creates a file to store a csv with a list of heartbeats */

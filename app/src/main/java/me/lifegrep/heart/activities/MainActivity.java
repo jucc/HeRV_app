@@ -1,7 +1,6 @@
 package me.lifegrep.heart.activities;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -20,13 +19,13 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,10 +40,9 @@ public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
 
-    Switch heartSwitch;
+    ToggleButton heartToggle;
     TextView heartbeat;
-    EditText userID;
-    Spinner posture, dailyActivities;
+    Spinner dailyActivities;
     FloatingActionButton button_start, button_stop;
     ArrayAdapter<CharSequence> postureAdapter, categoriesAdapter;
 
@@ -65,28 +63,28 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Activity created");
 
         setContentView(R.layout.activity_main);
-        heartSwitch = (Switch) findViewById(R.id.sw_heart);
-        heartSwitch.setEnabled(false);
-        heartbeat = (TextView) findViewById(R.id.tv_heartbeat);
-        posture = (Spinner) findViewById(R.id.sp_posture);
+        heartToggle = (ToggleButton) findViewById(R.id.tg_heart);
+        heartToggle.setEnabled(false);
+        heartbeat = (TextView) findViewById(R.id.tv_heartrate);
+        //TODO add posture radio buttons
         dailyActivities = (Spinner) findViewById(R.id.sp_activity);
         button_start = (FloatingActionButton) findViewById(R.id.ab_start);
         button_stop = (FloatingActionButton) findViewById(R.id.ab_stop);
-        userID = (EditText) findViewById(R.id.et_userID);
 
-        postureAdapter = ArrayAdapter.createFromResource(this,
+
+        /*postureAdapter = ArrayAdapter.createFromResource(this,
                                                          R.array.postures,
-                                                         android.R.layout.simple_spinner_item);
+                                                         android.R.layout.simple_spinner_item);*/
         categoriesAdapter = ArrayAdapter.createFromResource(this,
                                                             R.array.activity_categories_descriptors,
                                                             android.R.layout.simple_spinner_item);
 
         // Specify the layout to use when the list of choices appears
-        postureAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // postureAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         // Apply the adapter to the spinner
-        posture.setAdapter(postureAdapter);
+        // posture.setAdapter(postureAdapter);
         dailyActivities.setAdapter(categoriesAdapter);
     }
 
@@ -97,20 +95,22 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Activity starting");
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            heartSwitch.setEnabled(false);
+            heartToggle.setEnabled(false);
             heartbeat.setText(R.string.text_monitornobluetooth);
             return;
         }
 
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        String savedAddress = preferences.getString("deviceAddress", null);
-        //TODO shared preferences does not seem to be be kept on destroy, only on pause
-        if (savedAddress != null)
-        {
-            deviceAddress = savedAddress;
-            Log.i(TAG, "Saved device address recovered: " + savedAddress);
+        if (blueService != null) {
+            if (!blueService.getConnectedState()) {
+                Log.i(TAG, "Trying to reconnect to Gatt from already existing blue service");
+                blueService.connect(this.deviceAddress);
+            } else {
+                Log.i(TAG, "Blue service connected already");
+            }
+        } else {
+            Log.i(TAG, "New connection");
+            startMonitoringService();
         }
-        startMonitoringService();
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
     }
 
@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
     // Listener registered for sw_heart toggle
     //TODO not working
     public void toggleHeartMonitor(View view) {
-        if (heartSwitch.isChecked()) {
+        if (heartToggle.isChecked()) {
             startMonitoringService();
         } else {
             stopMonitoringService();
@@ -206,6 +206,10 @@ public class MainActivity extends AppCompatActivity {
         startService(blueServiceIntent); // needed for Service not to die if activity unbinds
         bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         Log.i(TAG, "Bound to service");
+        if (blueService != null && !blueService.getConnectedState()) {
+            Log.i(TAG, "Connecting to GATT from startMonitoringService");
+            blueService.connect(this.deviceAddress);
+        }
     }
 
 
@@ -263,14 +267,16 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             Log.i(TAG, "Service connected to activity");
             blueService = ((BluetoothLeService.LocalBinder) service).getService();
+            //TODO do I need to do this here?
+            Log.i(TAG, "Using connect to gatt from service connected callback");
             if (!blueService.connect(deviceAddress)) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
-                heartSwitch.setChecked(false);
+                heartToggle.setChecked(false);
                 heartbeat.setText("Error in bluetooth initialization");
                 return;
             }
             serviceConnected = true;
-            heartSwitch.setChecked(true);
+            heartToggle.setChecked(true);
         }
 
 
@@ -278,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName componentName) {
             Log.i(TAG, "Service disconnected!");
             serviceConnected = false;
-            heartSwitch.setChecked(false);
+            heartToggle.setChecked(false);
             unregisterReceiver(gattUpdateReceiver);
             // maybe it was an accident? Let's try to get it back!
             startMonitoringService();
@@ -317,8 +323,9 @@ public class MainActivity extends AppCompatActivity {
     public void startActivity(View view) {
         int position = dailyActivities.getSelectedItemPosition();
         String curr_act = getResources().getStringArray(R.array.activity_categories_names)[position];
-        String curr_posture = this.posture.getSelectedItem().toString();
-        DailyActivity activity = new DailyActivity(Event.TP_START, curr_act, curr_posture, new Date());
+        //TODO add posture name from selected radio
+        String curr_posture = "posture";
+        DailyActivity activity = new DailyActivity(Event.TP_START, curr_act, curr_posture , new Date());
         saveActivity(activity);
 
         Toast.makeText(this, "Started: " + this.dailyActivities.getSelectedItem().toString(), Toast.LENGTH_LONG );
