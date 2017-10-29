@@ -111,16 +111,14 @@ public class MainActivity extends AppCompatActivity {
         boolean sessionStatus = sharedPref.getBoolean(getString(R.string.save_session_started), false);
         setSessionStatus(sessionStatus);
 
-        if (sessionStatus) {
-            Log.i(TAG, "Recovered started session");
-        } else {
-            Log.i(TAG, "No session recovered");
-        }
-
         int selectedActivityID = sharedPref.getInt(getString(R.string.save_activity), -1);
         int selectedPostureID = sharedPref.getInt(getString(R.string.save_posture), -1);
-        this.dailyActivities.setSelection(selectedActivityID);
-        this.radioPosture.check(selectedPostureID);
+        if (selectedActivityID != -1) {
+            this.dailyActivities.setSelection(selectedActivityID);
+        }
+        if (selectedPostureID != -1) {
+            this.radioPosture.check(selectedPostureID);
+        }
     }
 
 
@@ -141,7 +139,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         Log.i(TAG, "Activity stopping");
-        unregisterReceiver(gattUpdateReceiver);
+        try {
+            if (gattUpdateReceiver != null) {
+                unregisterReceiver(gattUpdateReceiver);
+            }
+        } catch (IllegalArgumentException e) {
+            Log.w(TAG, "Tried to unregister non existing receiver");
+        }
     }
 
 
