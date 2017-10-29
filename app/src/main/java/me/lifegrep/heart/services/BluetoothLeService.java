@@ -34,6 +34,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.annotation.DrawableRes;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -90,7 +91,7 @@ public class BluetoothLeService extends Service {
 
         // If we get killed, after returning from here, restart
         if (!getConnectedState()) {
-            this.showForegroundNotification(getString(R.string.notification_disconnected));
+            this.showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_temp);
             this.deviceAddress = address;
             this.connect(address);
         }
@@ -107,7 +108,7 @@ public class BluetoothLeService extends Service {
     /**
      * https://gist.github.com/kristopherjohnson/6211176
      **/
-    private void showForegroundNotification(String contentText) {
+    private void showForegroundNotification(String contentText, int icon) {
         // Create intent that will bring our app to the front, as if it was tapped in launcher
         Intent showTaskIntent = new Intent(getApplicationContext(), MainActivity.class);
         showTaskIntent.setAction(Intent.ACTION_MAIN);
@@ -123,7 +124,7 @@ public class BluetoothLeService extends Service {
         Notification notification = new Notification.Builder(getApplicationContext())
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(contentText)
-                .setSmallIcon(R.drawable.herv_logo_temp)
+                .setSmallIcon(icon)
                 .setWhen(System.currentTimeMillis())
                 .setContentIntent(contentIntent)
                 .build();
@@ -229,7 +230,7 @@ public class BluetoothLeService extends Service {
         // We want to directly connect to the device, so we are setting autoConnect to false.
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         //TODO test if connection was successful
-        Log.i(TAG, "Connected to device's GAtt server");
+        Log.i(TAG, "Connected to device's gatt server");
         deviceAddress = address;
         mConnectionState = STATE_CONNECTING;
 
@@ -271,7 +272,7 @@ public class BluetoothLeService extends Service {
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-                showForegroundNotification(getString(R.string.notification_connecting));
+                showForegroundNotification(getString(R.string.notification_connecting), R.drawable.herv_logo_temp);
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
@@ -279,7 +280,7 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Trying to reconnect");
-                showForegroundNotification(getString(R.string.notification_disconnected));
+                showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_temp);
                 int i = 0;
                 //TODO move to a separate thread and let it sleep for a few seconds before trying again
                 while(!connect(deviceAddress)) {
@@ -297,7 +298,7 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Services discovered");
                 BluetoothGattCharacteristic hr = findHRMCharacteristic(getSupportedGattServices());
                 setCharacteristicNotification(hr, true);
-                showForegroundNotification(getString(R.string.notification_running));
+                showForegroundNotification(getString(R.string.notification_running), R.drawable.herv_logo_temp);
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
                 Log.w(TAG, "Could not discover services: " + status);

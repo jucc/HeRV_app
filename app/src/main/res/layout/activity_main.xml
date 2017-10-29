@@ -65,55 +65,51 @@
         app:layout_constraintLeft_toRightOf="@+id/tg_heart"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tg_heart"
-        android:layout_marginTop="0dp"
         app:layout_constraintHorizontal_bias="0.47" />
 
 
     <!-- ACTIVITY LOGGING -->
 
-    <RadioButton
-        android:id="@+id/rb_liedown"
-        android:layout_width="wrap_content"
+    <RadioGroup
+        android:id="@+id/radioPosture"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Lie Down"
-        app:layout_constraintTop_toBottomOf="@+id/tg_heart"
         android:layout_marginTop="128dp"
+        android:orientation="horizontal"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@+id/rb_sit" />
+        app:layout_constraintTop_toBottomOf="@+id/tg_heart">
 
-    <RadioButton
-        android:id="@+id/rb_sit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sit"
-        app:layout_constraintTop_toBottomOf="@+id/tg_heart"
-        android:layout_marginTop="128dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"/>
+        <RadioButton
+            android:id="@+id/rb_liedown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/posture_lie" />
 
-    <RadioButton
-        android:id="@+id/rb_stand"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stand"
-        app:layout_constraintTop_toBottomOf="@+id/tg_heart"
-        android:layout_marginTop="128dp"
-        app:layout_constraintLeft_toRightOf="@+id/rb_sit"
-        app:layout_constraintRight_toRightOf="parent" />
+        <RadioButton
+            android:id="@+id/rb_sit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/posture_sit" />
+
+        <RadioButton
+            android:id="@+id/rb_stand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/posture_stand" />
+
+    </RadioGroup>
 
     <Spinner
         android:id="@+id/sp_activity"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="64dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rb_sit" />
+        app:layout_constraintTop_toBottomOf="@+id/radioPosture"
+        android:layout_marginTop="32dp"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/ab_start"
