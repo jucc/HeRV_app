@@ -83,7 +83,15 @@ public class BluetoothLeService extends Service {
     //region lifecycle management
 
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         this.showForegroundNotification("Heart rate monitor running");
+
+        // enable bluetooth if not yet available
+
+        //TODO create a settings menu for user to pair device like polar beat
+        // if no device address is registered, start scanning activity for one
+
+
         // If we get killed, after returning from here, restart
         if (!getConnectedState()) {
             deviceAddress = "00:22:D0:85:88:8E";

@@ -35,5 +35,6 @@
     <string name="local_service_started">Local service started</string>
     <string name="local_service_label">Local service label</string>
 
-
+    <string name="no_device_paired">no device paired</string>
+    <string name="pair_device">Pair device</string>
 </resources>

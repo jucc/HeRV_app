@@ -20,9 +20,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
+import android.widget.Button;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -42,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
     ToggleButton heartToggle;
     TextView heartbeat;
+    Button startScan;
+    TextView pairedDevice;
     Spinner dailyActivities;
     FloatingActionButton button_start, button_stop;
     ArrayAdapter<CharSequence> postureAdapter, categoriesAdapter;
@@ -66,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
         heartToggle = (ToggleButton) findViewById(R.id.tg_heart);
         heartToggle.setEnabled(false);
         heartbeat = (TextView) findViewById(R.id.tv_heartrate);
+        startScan = (Button) findViewById(R.id.bt_pair);
+        pairedDevice = (TextView) findViewById(R.id.tv_paired_device);
         //TODO add posture radio buttons
         dailyActivities = (Spinner) findViewById(R.id.sp_activity);
         button_start = (FloatingActionButton) findViewById(R.id.ab_start);
@@ -184,23 +187,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * Start the heart monitor service running in background
-     */
-    private void startMonitoringService() {
-
-        // search for devices TODO move this to blueservice
-        if (this.deviceAddress == null) {
-            Intent intent_scan = new Intent(this, DeviceScanActivity.class);
-            startActivityForResult(intent_scan, REQUEST_SCAN);
-            return;
-            // when the activity returns the device address, this method will be called back
-        }
-
-        Log.i(TAG, "Starting service");
-        final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
-        startService(blueServiceIntent); // needed for Service not to die if activity unbinds
-        bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
-        Log.i(TAG, "Bound to service");
+     * Allows the user to select a device to pair with the app
+     **/
+    public void scanDevices(View view) {
+        Intent intent_scan = new Intent(this, DeviceScanActivity.class);
+        startActivityForResult(intent_scan, REQUEST_SCAN);
     }
 
 
@@ -212,10 +203,23 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_SCAN) { // Make sure this is the scan result
             if (resultCode == RESULT_OK) { // Make sure the request was successful
                 this.deviceAddress = data.getStringExtra("deviceAddr");
+                pairedDevice.setText(this.deviceAddress);
                 Log.i(TAG, "User selected device with address " + this.deviceAddress);
                 startMonitoringService();
             }
         }
+    }
+
+
+    /**
+     * Starts the heart monitor service running in background
+     */
+    private void startMonitoringService() {
+        Log.i(TAG, "Starting service");
+        final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
+        startService(blueServiceIntent); // needed for Service not to die if activity unbinds
+        bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        Log.i(TAG, "Bound to service");
     }
 
 

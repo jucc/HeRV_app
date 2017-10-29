@@ -11,25 +11,47 @@
 
     <!-- HEART RATE MONITORING -->
 
+    <Button
+        android:id="@+id/bt_pair"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:onClick="scanDevices"
+        android:text="@string/pair_device"
+        app:layout_constraintHorizontal_bias="0.1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
     <ToggleButton
         android:id="@+id/tg_heart"
         android:layout_width="wrap_content"
-        android:layout_height="96dp"
-        android:layout_marginTop="48dp"
+        android:layout_height="wrap_content"
         android:checked="false"
         android:fontFamily="monospace"
         android:text="Heart Monitor"
         android:textAlignment="center"
-        android:textColor="#eb5058"
-        android:textOff="Off"
-        android:textOn="On"
         android:textSize="18sp"
         android:textStyle="bold"
         android:typeface="monospace"
-        app:layout_constraintHorizontal_bias="0.099"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@+id/bt_pair"
+        app:layout_constraintTop_toBottomOf="@+id/bt_pair"
+        android:layout_marginTop="16dp" />
+
+
+    <TextView
+        android:id="@+id/tv_paired_device"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_device_paired"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:typeface="monospace"
+        app:layout_constraintLeft_toRightOf="@+id/bt_pair"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBaseline_toBaselineOf="@+id/bt_pair"
+        />
 
 
     <TextView
@@ -43,21 +65,8 @@
         app:layout_constraintLeft_toRightOf="@+id/tg_heart"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@+id/tg_heart"
-        />
-
-
-    <TextView
-        android:id="@+id/tv_intervals"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textAlignment="center"
-        android:textStyle="bold"
-        android:typeface="monospace"
-        app:layout_constraintLeft_toRightOf="@+id/tg_heart"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="@+id/tg_heart"
-        />
+        android:layout_marginTop="0dp"
+        app:layout_constraintHorizontal_bias="0.47" />
 
 
     <!-- ACTIVITY LOGGING -->
