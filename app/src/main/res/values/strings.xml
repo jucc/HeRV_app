@@ -35,6 +35,10 @@
     <string name="local_service_started">Local service started</string>
     <string name="local_service_label">Local service label</string>
 
+    <string name="notification_running">Heart rate monitor running</string>
+    <string name="notification_disconnected">Heart rate sensor disconnected. Trying to reconnect.</string>
+    <string name="notification_connecting">Heart rate sensor found - monitor connecting</string>
+
     <string name="no_device_paired">no device paired</string>
     <string name="pair_device">Pair device</string>
     <string name="paired_device">paired</string>

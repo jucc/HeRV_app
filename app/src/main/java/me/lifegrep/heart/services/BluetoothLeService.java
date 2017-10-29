@@ -85,12 +85,12 @@ public class BluetoothLeService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        this.showForegroundNotification("Heart rate monitor running");
         String address = intent.getExtras().getString("address");
         Log.i(TAG, "Received start command with address " + address );
 
         // If we get killed, after returning from here, restart
         if (!getConnectedState()) {
+            this.showForegroundNotification(getString(R.string.notification_disconnected));
             this.deviceAddress = address;
             this.connect(address);
         }
@@ -271,6 +271,7 @@ public class BluetoothLeService extends Service {
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                showForegroundNotification(getString(R.string.notification_connecting));
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
@@ -278,6 +279,7 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Trying to reconnect");
+                showForegroundNotification(getString(R.string.notification_disconnected));
                 int i = 0;
                 //TODO move to a separate thread and let it sleep for a few seconds before trying again
                 while(!connect(deviceAddress)) {
@@ -295,6 +297,7 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Services discovered");
                 BluetoothGattCharacteristic hr = findHRMCharacteristic(getSupportedGattServices());
                 setCharacteristicNotification(hr, true);
+                showForegroundNotification(getString(R.string.notification_running));
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
                 Log.w(TAG, "Could not discover services: " + status);
