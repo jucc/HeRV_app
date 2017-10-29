@@ -233,6 +233,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         Log.i(TAG, "Starting service");
         final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
+        blueServiceIntent.putExtra("address", this.deviceAddress);
         startService(blueServiceIntent); // needed for Service not to die if activity unbinds
         bindService(blueServiceIntent, serviceConnection, BIND_AUTO_CREATE);
         Log.i(TAG, "Bound to service");
@@ -318,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 heartbeat.setText("Disconnected");
             }
-            // blatantly ignore any other actions - activity doesn't really care, service does
+            // blatantly ignore any other events - activity doesn't really care, service does
         }
     };
 

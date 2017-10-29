@@ -31,6 +31,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -85,18 +86,16 @@ public class BluetoothLeService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         this.showForegroundNotification("Heart rate monitor running");
-
-        // enable bluetooth if not yet available
-
-        //TODO create a settings menu for user to pair device like polar beat
-        // if no device address is registered, start scanning activity for one
-
+        String address = intent.getExtras().getString("address");
+        Log.i(TAG, "Received start command with address " + address );
 
         // If we get killed, after returning from here, restart
         if (!getConnectedState()) {
-            deviceAddress = "00:22:D0:85:88:8E";
-            connect(deviceAddress);
+            this.deviceAddress = address;
+            this.connect(address);
         }
+        //TODO test if the address is different from the one stored. If so, disconnect and connect to new server
+
         return START_STICKY;
     }
 
@@ -191,11 +190,8 @@ public class BluetoothLeService extends Service {
      */
     public boolean connect(final String address) {
 
-        Log.i(TAG, "Connecting to gatt server in bluetooth device");
+        Log.i(TAG, "Connecting to gatt server in bluetooth device with address " + address );
 
-        if (address != null) {
-            deviceAddress = address;
-        }
         if (deviceAddress == null) {
             Log.e(TAG, "Unspecified address.");
             return false;
@@ -210,9 +206,9 @@ public class BluetoothLeService extends Service {
             this.mBluetoothAdapter = adapter;
         }
 
-        // try to reconnect to a previously connected GAtt server
+        // try to reconnect to a previously connected gatt server
         if (mBluetoothGatt != null) {
-            Log.i(TAG, "Trying to use an existing GAtt server connection.");
+            Log.i(TAG, "Trying to use an existing gatt server connection.");
             if (mBluetoothGatt.connect()) {
                 mConnectionState = STATE_CONNECTING;
                 return true;
@@ -229,7 +225,7 @@ public class BluetoothLeService extends Service {
             Log.e(TAG, "Device not found.  Unable to connect.");
             return false;
         }
-        Log.i(TAG, "Device found. Creating a new connection to its GATT server");
+        Log.i(TAG, "Device found. Creating a new connection to its gatt server");
         // We want to directly connect to the device, so we are setting autoConnect to false.
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         //TODO test if connection was successful
