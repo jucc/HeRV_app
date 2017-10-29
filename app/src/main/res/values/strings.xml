@@ -27,4 +27,9 @@
     <string name="no_device_paired">no device paired</string>
     <string name="pair_device">Pair device</string>
     <string name="paired_device">paired</string>
+
+    <string name="session">Activity session</string>
+    <string name="session_started">Activity started</string>
+    <string name="session_stopped">Start new activity</string>
+
 </resources>

@@ -45,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     TextView heartbeat;
     Button startScan;
     TextView pairedDevice;
+
+    private TextView sessionText;
     private RadioGroup radioPosture;
     private RadioButton radioPostureButton;
     Spinner dailyActivities;
@@ -68,29 +70,24 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         heartToggle = (ToggleButton) findViewById(R.id.tg_heart);
-        heartToggle.setEnabled(false);
+        heartToggle.setEnabled(false); //TODO make it work!
         heartbeat = (TextView) findViewById(R.id.tv_heartrate);
         startScan = (Button) findViewById(R.id.bt_pair);
         pairedDevice = (TextView) findViewById(R.id.tv_paired_device);
-        //TODO add posture radio buttons
+
+        sessionText = (TextView) findViewById(R.id.tv_session);
         dailyActivities = (Spinner) findViewById(R.id.sp_activity);
+        radioPosture = (RadioGroup) findViewById(R.id.rg_posture);
         button_start = (FloatingActionButton) findViewById(R.id.ab_start);
         button_stop = (FloatingActionButton) findViewById(R.id.ab_stop);
 
-
-        /*postureAdapter = ArrayAdapter.createFromResource(this,
-                                                         R.array.postures,
-                                                         android.R.layout.simple_spinner_item);*/
         categoriesAdapter = ArrayAdapter.createFromResource(this,
                 R.array.activity_categories_descriptors,
                 android.R.layout.simple_spinner_item);
 
         // Specify the layout to use when the list of choices appears
-        // postureAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         categoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
         // Apply the adapter to the spinner
-        // posture.setAdapter(postureAdapter);
         dailyActivities.setAdapter(categoriesAdapter);
     }
 
@@ -308,33 +305,47 @@ public class MainActivity extends AppCompatActivity {
 
     // Listener registered for ab_start
     public void startActivity(View view) {
+
+        // get selected activity from spinner
         int position = dailyActivities.getSelectedItemPosition();
-        String curr_act = getResources().getStringArray(R.array.activity_categories_names)[position];
-        //TODO add posture name from selected radio
-        String curr_posture = "posture";
-        DailyActivity activity = new DailyActivity(Event.TP_START, curr_act, curr_posture , new Date());
+        String ss_activity = getResources().getStringArray(R.array.activity_categories_names)[position];
+
+        // get selected posture from radio button
+        String ss_posture = "";
+        int posture_id = radioPosture.getCheckedRadioButtonId();
+        switch(posture_id){
+            case R.id.rb_liedown:
+                ss_posture = "lie";
+                break;
+            case R.id.rb_sit:
+                ss_posture = "sit";
+                break;
+            case R.id.rb_stand:
+                ss_posture = "stand";
+                break;
+        }
+
+        DailyActivity activity = new DailyActivity(Event.TP_START, ss_activity, ss_posture , new Date());
         saveActivity(activity);
 
         Toast.makeText(this, "Started: " + this.dailyActivities.getSelectedItem().toString(), Toast.LENGTH_LONG );
 
-        button_stop.setEnabled(true);
-        button_stop.setClickable(true);
-        button_start.setBackgroundColor(Color.GRAY);
-        button_start.setEnabled(false);
-        button_start.setClickable(false);
+        button_stop.setVisibility(View.VISIBLE);
+        button_start.setVisibility(View.INVISIBLE);
+        sessionText.setText(getString(R.string.session_started));
     }
 
     // Listener registered for ab_stop
     public void stopActivity(View view) {
-        //TODO save selected activity on destroy to use it here instead of blanks
+        //TODO save date to session instead
         DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
         saveActivity(activity);
-        button_start.setEnabled(true);
-        button_start.setClickable(true);
-        button_stop.setBackgroundColor(Color.GRAY);
-        button_stop.setEnabled(false);
-        button_stop.setClickable(false);
-        Toast.makeText(this, "Stopped activity",Toast.LENGTH_LONG );
+
+        button_stop.setVisibility(View.INVISIBLE);
+        button_start.setVisibility(View.VISIBLE);
+        sessionText.setText(getString(R.string.session_stopped));
+
+        Toast.makeText(this, "Finished activity",Toast.LENGTH_LONG );
     }
 
     private void saveActivity(DailyActivity activity) {
