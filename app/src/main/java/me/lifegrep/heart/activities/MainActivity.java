@@ -10,18 +10,14 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -41,17 +37,15 @@ public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
 
-    ToggleButton heartToggle;
-    TextView heartbeat;
-    Button startScan;
-    TextView pairedDevice;
+    private ToggleButton heartToggle;
+    private TextView heartbeat, pairedDevice;
+    private Button startScan;
 
     private TextView sessionText;
     private RadioGroup radioPosture;
-    private RadioButton radioPostureButton;
-    Spinner dailyActivities;
-    FloatingActionButton button_start, button_stop;
-    ArrayAdapter<CharSequence> categoriesAdapter;
+    private Spinner dailyActivities;
+    private FloatingActionButton buttonStart, buttonStop, button_void;
+    private ArrayAdapter<CharSequence> categoriesAdapter;
 
     private BluetoothLeService blueService;
     private boolean serviceConnected;
@@ -78,8 +72,9 @@ public class MainActivity extends AppCompatActivity {
         sessionText = (TextView) findViewById(R.id.tv_session);
         dailyActivities = (Spinner) findViewById(R.id.sp_activity);
         radioPosture = (RadioGroup) findViewById(R.id.rg_posture);
-        button_start = (FloatingActionButton) findViewById(R.id.ab_start);
-        button_stop = (FloatingActionButton) findViewById(R.id.ab_stop);
+        buttonStart = (FloatingActionButton) findViewById(R.id.ab_start);
+        buttonStop = (FloatingActionButton) findViewById(R.id.ab_stop);
+        button_void = (FloatingActionButton) findViewById(R.id.ab_cancel);
 
         categoriesAdapter = ArrayAdapter.createFromResource(this,
                 R.array.activity_categories_descriptors,
@@ -112,6 +107,20 @@ public class MainActivity extends AppCompatActivity {
             startMonitoringService();
             registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
         }
+
+        boolean sessionStatus = sharedPref.getBoolean(getString(R.string.save_session_started), false);
+        setSessionStatus(sessionStatus);
+
+        if (sessionStatus) {
+            Log.i(TAG, "Recovered started session");
+        } else {
+            Log.i(TAG, "No session recovered");
+        }
+
+        int selectedActivityID = sharedPref.getInt(getString(R.string.save_activity), -1);
+        int selectedPostureID = sharedPref.getInt(getString(R.string.save_posture), -1);
+        this.dailyActivities.setSelection(selectedActivityID);
+        this.radioPosture.check(selectedPostureID);
     }
 
 
@@ -303,37 +312,52 @@ public class MainActivity extends AppCompatActivity {
 
     //region daily activities saving
 
+    public void setSessionStatus(boolean started) {
+
+        if (started) {
+            buttonStop.setVisibility(View.VISIBLE);
+            buttonStart.setVisibility(View.INVISIBLE);
+            // button_void.setVisibility(View.VISIBLE);
+            sessionText.setText(getString(R.string.session_started));
+        } else {
+            buttonStop.setVisibility(View.INVISIBLE);
+            button_void.setVisibility(View.INVISIBLE);
+            buttonStart.setVisibility(View.VISIBLE);
+            sessionText.setText(getString(R.string.session_stopped));
+        }
+    }
+
+
     // Listener registered for ab_start
     public void startActivity(View view) {
 
         // get selected activity from spinner
-        int position = dailyActivities.getSelectedItemPosition();
-        String ss_activity = getResources().getStringArray(R.array.activity_categories_names)[position];
+        int selActivityID = dailyActivities.getSelectedItemPosition();
+        String selActivity = getResources().getStringArray(R.array.activity_categories_names)[selActivityID];
 
         // get selected posture from radio button
-        String ss_posture = "";
-        int posture_id = radioPosture.getCheckedRadioButtonId();
-        switch(posture_id){
+        String selPosture = "";
+        int selPostureID = radioPosture.getCheckedRadioButtonId();
+        switch(selPostureID){
             case R.id.rb_liedown:
-                ss_posture = "lie";
+                selPosture = "lie";
                 break;
             case R.id.rb_sit:
-                ss_posture = "sit";
+                selPosture = "sit";
                 break;
             case R.id.rb_stand:
-                ss_posture = "stand";
+                selPosture = "stand";
                 break;
         }
 
-        DailyActivity activity = new DailyActivity(Event.TP_START, ss_activity, ss_posture , new Date());
+        DailyActivity activity = new DailyActivity(Event.TP_START, selActivity, selPosture , new Date());
         saveActivity(activity);
 
+        saveSessionStatus(selActivityID, selPostureID);
+        setSessionStatus(true);
         Toast.makeText(this, "Started: " + this.dailyActivities.getSelectedItem().toString(), Toast.LENGTH_LONG );
-
-        button_stop.setVisibility(View.VISIBLE);
-        button_start.setVisibility(View.INVISIBLE);
-        sessionText.setText(getString(R.string.session_started));
     }
+
 
     // Listener registered for ab_stop
     public void stopActivity(View view) {
@@ -341,12 +365,25 @@ public class MainActivity extends AppCompatActivity {
         DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
         saveActivity(activity);
 
-        button_stop.setVisibility(View.INVISIBLE);
-        button_start.setVisibility(View.VISIBLE);
-        sessionText.setText(getString(R.string.session_stopped));
+        setSessionStatus(false);
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(getString(R.string.save_session_started), false);
+        editor.commit();
 
         Toast.makeText(this, "Finished activity",Toast.LENGTH_LONG );
     }
+
+
+    private void saveSessionStatus(int activityID, int postureID) {
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(getString(R.string.save_session_started), true);
+        editor.putInt(getString(R.string.save_activity), activityID);
+        editor.putInt(getString(R.string.save_posture), postureID);
+        editor.commit();
+    }
+
 
     private void saveActivity(DailyActivity activity) {
         String dt = formatActivityFilename.format(new Date());
