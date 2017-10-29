@@ -37,4 +37,5 @@
 
     <string name="no_device_paired">no device paired</string>
     <string name="pair_device">Pair device</string>
+    <string name="paired_device">paired</string>
 </resources>

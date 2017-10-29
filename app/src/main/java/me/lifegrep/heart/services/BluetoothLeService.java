@@ -286,7 +286,7 @@ public class BluetoothLeService extends Service {
                 //TODO move to a separate thread and let it sleep for a few seconds before trying again
                 while(!connect(deviceAddress)) {
                     i++;
-                    if (i%100 == 0) {
+                    if (i%10 == 0) {
                         Log.i(TAG, "Tried " + i + " times...");
                     }
                 }

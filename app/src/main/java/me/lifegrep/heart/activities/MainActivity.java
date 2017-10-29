@@ -79,8 +79,8 @@ public class MainActivity extends AppCompatActivity {
                                                          R.array.postures,
                                                          android.R.layout.simple_spinner_item);*/
         categoriesAdapter = ArrayAdapter.createFromResource(this,
-                                                            R.array.activity_categories_descriptors,
-                                                            android.R.layout.simple_spinner_item);
+                R.array.activity_categories_descriptors,
+                android.R.layout.simple_spinner_item);
 
         // Specify the layout to use when the list of choices appears
         // postureAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -98,13 +98,20 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "Activity starting");
 
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            heartToggle.setEnabled(false);
-            heartbeat.setText(R.string.text_monitornobluetooth);
+            this.heartToggle.setEnabled(false);
+            this.startScan.setEnabled(false);
+            this.pairedDevice.setText(R.string.text_monitornobluetooth);
+            this.heartbeat.setText("");
             return;
         }
 
-        startMonitoringService();
-        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        this.deviceAddress = sharedPref.getString(getString(R.string.paired_device), "");
+        if (this.deviceAddress != null && this.deviceAddress != "") {
+            this.pairedDevice.setText(this.deviceAddress);
+            startMonitoringService();
+            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+        }
     }
 
 
@@ -126,8 +133,6 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
         Log.i(TAG, "Activity stopping");
         unregisterReceiver(gattUpdateReceiver);
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        preferences.edit().putString("deviceAddress", this.deviceAddress);
     }
 
 
@@ -202,12 +207,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_SCAN) { // Make sure this is the scan result
             if (resultCode == RESULT_OK) { // Make sure the request was successful
-                this.deviceAddress = data.getStringExtra("deviceAddr");
-                pairedDevice.setText(this.deviceAddress);
-                Log.i(TAG, "User selected device with address " + this.deviceAddress);
-                startMonitoringService();
+                String address = data.getStringExtra("deviceAddr");
+                Log.i(TAG, "User selected device with address " + address);
+                this.saveDeviceAddress(address);
+                this.startMonitoringService();
             }
         }
+    }
+
+    protected void saveDeviceAddress(String address) {
+        this.deviceAddress = address;
+        this.pairedDevice.setText(address);
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(getString(R.string.paired_device), address);
+        editor.commit();
     }
 
 
@@ -215,6 +229,8 @@ public class MainActivity extends AppCompatActivity {
      * Starts the heart monitor service running in background
      */
     private void startMonitoringService() {
+        if (this.deviceAddress == null || this.deviceAddress == "")
+            return;
         Log.i(TAG, "Starting service");
         final Intent blueServiceIntent = new Intent(this, BluetoothLeService.class);
         startService(blueServiceIntent); // needed for Service not to die if activity unbinds
