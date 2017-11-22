@@ -20,20 +20,15 @@
         android:supportsRtl="true"
         android:theme="@style/HeRVpalette">
 
-        <!-- app starting activity -->
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- search for devices ! -->
         <activity android:name=".activities.DeviceScanActivity" />
-        <!-- allow user to log current activity ! -->
-        <!-- connect to BLE (polar H7) device -->
         <service
             android:name=".services.BluetoothLeService"
             android:enabled="true" />
