@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
-    tools:context="me.lifegrep.heart.activities.MainActivity">
+    tools:context=".activities.MainActivity">
 
 
     <!-- HEART RATE MONITORING -->
