@@ -10,7 +10,9 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +26,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -54,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final int REQUEST_SCAN = 1;
     private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
+
+    FirebaseStorage storage = FirebaseStorage.getInstance();
 
     //region lifecycle methods
 
@@ -396,4 +404,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //endregion
+
+    public void sendToCloud(View view) {
+        int user = 0;
+        String remotePath = "raw/" + user + "/";
+
+        String dirname = Environment.getExternalStorageDirectory().getPath() + "/HeRV/";
+        File dir = new File(dirname);
+        if(!dir.exists() || !dir.isDirectory())
+        {
+            Toast.makeText(this, "Directory does not exist", Toast.LENGTH_LONG);
+            Log.w(TAG, "Trying to read non existent directory");
+            return;
+        }
+        File files[] = dir.listFiles();
+        if (files.length == 0) {
+            Toast.makeText(this, "Directory is empty", Toast.LENGTH_LONG);
+            Log.i(TAG, "Empty directory");
+            return;
+        }
+
+        StorageReference storageRef = storage.getReference();
+        for( File file : files) {
+            String fname = file.getAbsolutePath();
+            Log.i(TAG, "Preparing to send file: " + fname);
+            StorageReference ref =  storageRef.child(remotePath + file.getName());
+            Uri uri = Uri.fromFile(file);
+            ref.putFile(uri);
+        }
+    }
 }

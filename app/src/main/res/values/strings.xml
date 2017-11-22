@@ -36,4 +36,6 @@
     <string name="save_activity">activity</string>
     <string name="save_posture">posture</string>
 
+    <string name="send_data">Sync data </string>
+
 </resources>
