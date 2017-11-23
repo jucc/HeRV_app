@@ -10,10 +10,9 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -26,14 +25,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import herv.app.services.BluetoothLeService;
+import herv.app.services.CloudWriter;
 import herv.app.services.ScratchWriter;
 import herv.app.R;
 import herv.app.model.DailyActivity;
@@ -55,13 +57,13 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothLeService blueService;
     private boolean serviceConnected;
+    private CloudWriter cloud;
+    private FirebaseAuth mAuth;
 
     private String deviceAddress; // "00:22:D0:85:88:8E";
 
     private final int REQUEST_SCAN = 1;
     private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
-
-    FirebaseStorage storage = FirebaseStorage.getInstance();
 
     //region lifecycle methods
 
@@ -92,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
         categoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         dailyActivities.setAdapter(categoriesAdapter);
+
+        mAuth = FirebaseAuth.getInstance();
     }
 
 
@@ -127,6 +131,10 @@ public class MainActivity extends AppCompatActivity {
         if (selectedPostureID != -1) {
             this.radioPosture.check(selectedPostureID);
         }
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        signInAnonymously();
+        //updateUI(currentUser);
     }
 
 
@@ -405,32 +413,30 @@ public class MainActivity extends AppCompatActivity {
 
     //endregion
 
+
+    //region firebase methods
     public void sendToCloud(View view) {
         int user = 0;
-        String remotePath = "raw/" + user + "/";
+        cloud = new CloudWriter();
+        int files = cloud.uploadFiles(user);
+        String msg = getString(R.string.upload_files) + files;
+        cloud = null;
+    }
 
-        String dirname = Environment.getExternalStorageDirectory().getPath() + "/HeRV/";
-        File dir = new File(dirname);
-        if(!dir.exists() || !dir.isDirectory())
-        {
-            Toast.makeText(this, "Directory does not exist", Toast.LENGTH_LONG);
-            Log.w(TAG, "Trying to read non existent directory");
-            return;
-        }
-        File files[] = dir.listFiles();
-        if (files.length == 0) {
-            Toast.makeText(this, "Directory is empty", Toast.LENGTH_LONG);
-            Log.i(TAG, "Empty directory");
-            return;
-        }
-
-        StorageReference storageRef = storage.getReference();
-        for( File file : files) {
-            String fname = file.getAbsolutePath();
-            Log.i(TAG, "Preparing to send file: " + fname);
-            StorageReference ref =  storageRef.child(remotePath + file.getName());
-            Uri uri = Uri.fromFile(file);
-            ref.putFile(uri);
-        }
+    private void signInAnonymously() {
+        mAuth.signInAnonymously().addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(TAG, "signInAnonymously:success");
+                    FirebaseUser user = mAuth.getCurrentUser();
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w(TAG, "signInAnonymously:failure", task.getException());
+                    Toast.makeText(MainActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 }

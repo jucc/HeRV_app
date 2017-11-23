@@ -38,4 +38,6 @@
 
     <string name="send_data">Sync data </string>
 
+    <string name="upload_files">Total files to upload : </string>
+
 </resources>
