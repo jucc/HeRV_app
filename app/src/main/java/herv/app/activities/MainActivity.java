@@ -179,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
 
-    //region  BLUETOOTH LE SERVICE
+    //region  service interaction
     // connects to service and receives broadcasts to show HR on screen
 
 

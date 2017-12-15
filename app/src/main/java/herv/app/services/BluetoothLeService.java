@@ -89,6 +89,7 @@ public class BluetoothLeService extends Service {
 
         // If we get killed, after returning from here, restart
         if (!getConnectedState()) {
+            Log.i(TAG, "[onStartCommand] Trying to connect to address " + address );
             this.showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_temp);
             this.deviceAddress = address;
             this.connect(address);
