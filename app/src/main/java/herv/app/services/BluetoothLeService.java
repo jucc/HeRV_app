@@ -420,7 +420,7 @@ public class BluetoothLeService extends Service {
 
     private void saveDataToCSV(Heartbeat beat) {
         String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-        ScratchWriter writer = new ScratchWriter(this, "rr" + dt + ".csv");
+        ScratchFileWriter writer = new ScratchFileWriter(this, "rr" + dt + ".csv");
         writer.saveData(beat.toCSV());
     }
 

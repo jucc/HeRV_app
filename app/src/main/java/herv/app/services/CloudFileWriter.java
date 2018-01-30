@@ -10,9 +10,9 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 
-public class CloudWriter {
+public class CloudFileWriter {
 
-    private final static String TAG = CloudWriter.class.getSimpleName();
+    private final static String TAG = CloudFileWriter.class.getSimpleName();
     FirebaseStorage storage = FirebaseStorage.getInstance();
 
     public int uploadFiles (int userID) {

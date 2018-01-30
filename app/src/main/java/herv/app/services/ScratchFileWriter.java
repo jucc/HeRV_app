@@ -15,19 +15,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 
-public class ScratchWriter {
+public class ScratchFileWriter {
 
     Context context;
     String filename, dirname;
 
-    public ScratchWriter(Context context, String filename) {
+    public ScratchFileWriter(Context context, String filename) {
         this.context = context;
         //this.filename = context.getFilesDir().getPath() + "/" + filename;
         this.dirname = "HeRV";
         this.filename = Environment.getExternalStorageDirectory().getPath() + "/" + dirname + "/" + filename;
         checkFolder();
     }
-
 
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
@@ -47,11 +46,11 @@ public class ScratchWriter {
     }
 
     public void saveData(String data) {
-        FileWriter fw = null;
+        java.io.FileWriter fw = null;
         BufferedWriter bw = null;
         try {
             //TODO URGENT open file only once and close at the end
-            fw = new FileWriter(filename, true);
+            fw = new java.io.FileWriter(filename, true);
             bw = new BufferedWriter(fw);
             bw.newLine();
             bw.write(data);
@@ -87,9 +86,9 @@ public class ScratchWriter {
 
 
     public void eraseContents() {
-        FileWriter fw = null;
+        java.io.FileWriter fw = null;
         try {
-            fw = new FileWriter(filename);
+            fw = new java.io.FileWriter(filename);
             fw.write("");
         } catch (Exception e) {
             e.printStackTrace();

@@ -35,8 +35,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import herv.app.services.BluetoothLeService;
-import herv.app.services.CloudWriter;
-import herv.app.services.ScratchWriter;
+import herv.app.services.CloudFileWriter;
+import herv.app.services.ScratchFileWriter;
 import herv.app.R;
 import herv.app.model.DailyActivity;
 import herv.app.model.Event;
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BluetoothLeService blueService;
     private boolean serviceConnected;
-    private CloudWriter cloud;
+    private CloudFileWriter cloud;
     private FirebaseAuth mAuth;
 
     private String deviceAddress; // "00:22:D0:85:88:8E";
@@ -407,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveActivity(DailyActivity activity) {
         String dt = formatActivityFilename.format(new Date());
-        ScratchWriter writer = new ScratchWriter(this, "act" + dt + ".csv");
+        ScratchFileWriter writer = new ScratchFileWriter(this, "act" + dt + ".csv");
         writer.saveData(activity.toCSV());
     }
 
@@ -417,7 +417,7 @@ public class MainActivity extends AppCompatActivity {
     //region firebase methods
     public void sendToCloud(View view) {
         int user = 0;
-        cloud = new CloudWriter();
+        cloud = new CloudFileWriter();
         int files = cloud.uploadFiles(user);
         String msg = getString(R.string.upload_files) + files;
         cloud = null;
