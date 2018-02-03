@@ -90,7 +90,7 @@ public class BluetoothLeService extends Service {
         // If we get killed, after returning from here, restart
         if (!getConnectedState()) {
             Log.i(TAG, "[onStartCommand] Trying to connect to address " + address );
-            this.showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_temp);
+            this.showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_3);
             this.deviceAddress = address;
             this.connect(address);
         }
@@ -271,7 +271,7 @@ public class BluetoothLeService extends Service {
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
-                showForegroundNotification(getString(R.string.notification_connecting), R.drawable.herv_logo_temp);
+                showForegroundNotification(getString(R.string.notification_connecting), R.drawable.herv_logo_3);
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
@@ -279,7 +279,7 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Trying to reconnect");
-                showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_temp);
+                showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_3);
                 int i = 0;
                 //TODO move to a separate thread and let it sleep for a few seconds before trying again
                 while(!connect(deviceAddress)) {
@@ -297,7 +297,7 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Services discovered");
                 BluetoothGattCharacteristic hr = findHRMCharacteristic(getSupportedGattServices());
                 setCharacteristicNotification(hr, true);
-                showForegroundNotification(getString(R.string.notification_running), R.drawable.herv_logo_temp);
+                showForegroundNotification(getString(R.string.notification_running), R.drawable.herv_logo_3);
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
                 Log.w(TAG, "Could not discover services: " + status);
