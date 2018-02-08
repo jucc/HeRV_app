@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ToggleButton heartToggle;
     private TextView heartbeat, pairedDevice;
-    private Button startScan;
+    private Button startScan, buttonSign;
 
     private TextView sessionText;
     private RadioGroup radioPosture;
@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         buttonStart = (FloatingActionButton) findViewById(R.id.ab_start);
         buttonStop = (FloatingActionButton) findViewById(R.id.ab_stop);
         button_void = (FloatingActionButton) findViewById(R.id.ab_cancel);
+        buttonSign = (Button) findViewById(R.id.bt_signin);
 
         categoriesAdapter = ArrayAdapter.createFromResource(this,
                 R.array.activity_categories_descriptors,
@@ -132,9 +133,9 @@ public class MainActivity extends AppCompatActivity {
             this.radioPosture.check(selectedPostureID);
         }
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        //FirebaseUser currentUser = mAuth.getCurrentUser();
         signInAnonymously();
-        //updateUI(currentUser);
+        updateLoginStatus();
     }
 
 
@@ -415,11 +416,27 @@ public class MainActivity extends AppCompatActivity {
 
 
     //region firebase methods
+
+
+    public void authenticate() {
+
+    }
+
+
+    public void updateLoginStatus() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            buttonSign.setText(R.string.common_signin_button_text);
+        } else {
+            buttonSign.setText(R.string.signout);
+        }
+
+    }
+
     public void sendToCloud(View view) {
         int user = 0;
         cloud = new CloudFileWriter();
         int files = cloud.uploadFiles(user);
-        String msg = getString(R.string.upload_files) + files;
         cloud = null;
     }
 

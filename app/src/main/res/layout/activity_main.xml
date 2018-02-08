@@ -171,12 +171,12 @@
         android:layout_marginTop="32dp"/>
 
     <Button
-        android:id="@+id/bt_send"
+        android:id="@+id/bt_signin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@color/herv_light_red"
-        android:onClick="sendToCloud"
-        android:text="@string/send_data"
+        android:onClick="authenticate"
+        android:text="@string/common_signin_button_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:layout_marginBottom="16dp" />

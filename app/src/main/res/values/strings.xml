@@ -36,8 +36,6 @@
     <string name="save_activity">activity</string>
     <string name="save_posture">posture</string>
 
-    <string name="send_data">Sync data </string>
-
-    <string name="upload_files">Total files to upload : </string>
+    <string name="signout">Sign out</string>
 
 </resources>
