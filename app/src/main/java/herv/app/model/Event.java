@@ -34,7 +34,7 @@ public interface Event {
      */
     public String toCSV();
 
-    public Integer getUser();
+    public String getUser();
 
     public String getType();
 

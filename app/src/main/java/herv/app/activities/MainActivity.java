@@ -429,7 +429,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveActivity(DailyActivity activity) {
         String dt = formatActivityFilename.format(new Date());
-        ScratchFileWriter writer = new ScratchFileWriter(this, "act" + dt + ".csv");
+        String user = mAuth.getCurrentUser().getUid();
+        StringBuilder filename = new StringBuilder();
+        filename.append("act");
+        filename.append(dt);
+        //filename.append("_");
+        //filename.append(user);
+        filename.append(".csv");
+        ScratchFileWriter writer = new ScratchFileWriter(this, filename.toString());
         writer.saveData(activity.toCSV());
     }
 
@@ -481,7 +488,7 @@ public class MainActivity extends AppCompatActivity {
             userText.setText(R.string.no_user);
         } else {
             buttonSign.setText(R.string.signout);
-            userText.setText(user.getDisplayName());
+            userText.setText(user.getDisplayName() + "\n" + user.getUid());
         }
     }
 

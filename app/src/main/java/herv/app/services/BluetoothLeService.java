@@ -56,6 +56,7 @@ public class BluetoothLeService extends Service {
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
     private String deviceAddress;
+    private String userID;
     private BluetoothGatt mBluetoothGatt;
     private NotificationManager notificationMgr;
 
@@ -85,6 +86,7 @@ public class BluetoothLeService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         String address = intent.getExtras().getString("address");
+        String userID = intent.getExtras().getString("user");
         Log.i(TAG, "Received start command with address " + address );
 
         // If we get killed, after returning from here, restart
@@ -92,6 +94,7 @@ public class BluetoothLeService extends Service {
             Log.i(TAG, "[onStartCommand] Trying to connect to address " + address );
             this.showForegroundNotification(getString(R.string.notification_disconnected), R.drawable.herv_logo_3);
             this.deviceAddress = address;
+            this.userID = userID;
             this.connect(address);
         }
         //TODO test if the address is different from the one stored. If so, disconnect and connect to new server
@@ -420,7 +423,13 @@ public class BluetoothLeService extends Service {
 
     private void saveDataToCSV(Heartbeat beat) {
         String dt = formatDateFilename.format(Calendar.getInstance().getTime());
-        ScratchFileWriter writer = new ScratchFileWriter(this, "rr" + dt + ".csv");
+        StringBuilder filename = new StringBuilder();
+        filename.append("rr");
+        filename.append(dt);
+        //filename.append("_");
+        //filename.append(this.userID);
+        filename.append(".csv");
+        ScratchFileWriter writer = new ScratchFileWriter(this, filename.toString());
         writer.saveData(beat.toCSV());
     }
 

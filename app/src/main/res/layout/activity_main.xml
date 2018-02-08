@@ -186,6 +186,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/no_user"
+        android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="@+id/bt_signin"
         app:layout_constraintRight_toLeftOf="@+id/bt_signin"
         android:layout_marginBottom="16dp"

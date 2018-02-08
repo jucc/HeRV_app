@@ -10,7 +10,7 @@ import java.util.List;
 
 public class Heartbeat implements Event {
 
-    protected Integer user;
+    protected String user;
     protected Date dt;
     protected List<Integer> intervals; // more than one beat can be registered in the same second
     protected Integer heartrate;
@@ -19,13 +19,13 @@ public class Heartbeat implements Event {
 
     protected Heartbeat() {}
 
-    public Heartbeat(Integer user, List<Integer> intervals) {
+    public Heartbeat(String user, List<Integer> intervals) {
         this.user = user;
         this.intervals = intervals;
         this.dt = new Date();
     }
 
-    public Heartbeat(Integer user, List<Integer> intervals, Date dt) {
+    public Heartbeat(String user, List<Integer> intervals, Date dt) {
         this.user = user;
         this.intervals = intervals;
         this.dt = dt;
@@ -111,9 +111,9 @@ public class Heartbeat implements Event {
         return data.toString();
     }
 
-    public Integer getUser() { return user; }
+    public String getUser() { return this.user; }
 
-    public void setUser(Integer user) { this.user = user; }
+    public void setUser(String user) { this.user = user; }
 
     public Date getDt(){ return dt; }
 
