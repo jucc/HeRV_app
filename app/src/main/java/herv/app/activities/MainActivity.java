@@ -25,6 +25,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -32,7 +34,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import herv.app.services.BluetoothLeService;
 import herv.app.services.CloudFileWriter;
@@ -46,10 +50,9 @@ public class MainActivity extends AppCompatActivity {
     private final static String TAG = MainActivity.class.getSimpleName();
 
     private ToggleButton heartToggle;
-    private TextView heartbeat, pairedDevice;
+    private TextView heartbeat, pairedDevice, sessionText, userText;
     private Button startScan, buttonSign;
 
-    private TextView sessionText;
     private RadioGroup radioPosture;
     private Spinner dailyActivities;
     private FloatingActionButton buttonStart, buttonStop, button_void;
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private String deviceAddress; // "00:22:D0:85:88:8E";
 
     private final int REQUEST_SCAN = 1;
+    private static final int RC_SIGN_IN = 42;
     private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
 
     //region lifecycle methods
@@ -80,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         pairedDevice = (TextView) findViewById(R.id.tv_paired_device);
 
         sessionText = (TextView) findViewById(R.id.tv_session);
+        userText = (TextView) findViewById(R.id.tv_user);
         dailyActivities = (Spinner) findViewById(R.id.sp_activity);
         radioPosture = (RadioGroup) findViewById(R.id.rg_posture);
         buttonStart = (FloatingActionButton) findViewById(R.id.ab_start);
@@ -205,17 +210,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /**
-     * Receives the selected device address result from the device scan activity
-     */
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        /**
+         * Receives the selected device address result from the device scan activity
+         */
         if (requestCode == REQUEST_SCAN) { // Make sure this is the scan result
             if (resultCode == RESULT_OK) { // Make sure the request was successful
                 String address = data.getStringExtra("deviceAddr");
                 Log.i(TAG, "User selected device with address " + address);
                 this.saveDeviceAddress(address);
                 this.startMonitoringService();
+            }
+        }
+
+        /**
+         * Returning from user login flow managed by FirebaseUI
+         */
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+
+            if (resultCode == RESULT_OK) {
+                updateLoginStatus();
+            } else {
+                // Sign in failed, check response for error code
+                // ...
             }
         }
     }
@@ -418,19 +439,50 @@ public class MainActivity extends AppCompatActivity {
     //region firebase methods
 
 
-    public void authenticate() {
+    // https://firebase.google.com/docs/auth/android/firebaseui
+    public void signin() {
 
+        // Choose authentication providers
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build());
+
+        // Create and launch sign-in intent
+        Intent intentSign = AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .build();
+        startActivityForResult(intentSign, RC_SIGN_IN);
     }
 
 
+    public void signout() {
+        AuthUI.getInstance().signOut(this)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    public void onComplete(@NonNull Task<Void> task) {
+                        updateLoginStatus();
+                    }
+                });
+    }
+
+    public void sign(View view) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null || user.isAnonymous()) {
+            signin();
+        } else {
+            signout();
+        }
+    }
+
     public void updateLoginStatus() {
         FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
+        if (user == null || user.isAnonymous()) {
             buttonSign.setText(R.string.common_signin_button_text);
+            userText.setText(R.string.no_user);
         } else {
             buttonSign.setText(R.string.signout);
+            userText.setText(user.getDisplayName());
         }
-
     }
 
     public void sendToCloud(View view) {
