@@ -95,14 +95,6 @@ public class HeartbeatFragment extends Fragment {
             return;
         }
 
-        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
-        this.deviceAddress = sharedPref.getString(getString(R.string.paired_device), "");
-        if (this.deviceAddress != null && this.deviceAddress != "") {
-            this.pairedDevice.setText(this.deviceAddress);
-            startMonitoringService();
-            getActivity().registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        }
-
         startScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { scanDevices(v); }});
@@ -123,6 +115,19 @@ public class HeartbeatFragment extends Fragment {
         }
     }
 
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        this.deviceAddress = sharedPref.getString(getString(R.string.paired_device), "");
+        if (this.deviceAddress != null && this.deviceAddress != "") {
+            this.pairedDevice.setText(this.deviceAddress);
+            startMonitoringService();
+            getActivity().registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+        }
+    }
 
     @Override
     public void onStop() {
