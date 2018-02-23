@@ -13,14 +13,10 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.RadioGroup;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -33,30 +29,20 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 import herv.app.services.BluetoothLeService;
 import herv.app.services.CloudFileWriter;
-import herv.app.services.ScratchFileWriter;
 import herv.app.R;
-import herv.app.model.DailyActivity;
-import herv.app.model.Event;
 
 public class MainActivity extends AppCompatActivity {
 
     private final static String TAG = MainActivity.class.getSimpleName();
 
     private ToggleButton heartToggle;
-    private TextView heartbeat, pairedDevice, sessionText, userText;
+    private TextView heartbeat, pairedDevice, userText;
     private Button startScan, buttonSign;
-
-    private RadioGroup radioPosture;
-    private Spinner dailyActivities;
-    private FloatingActionButton buttonStart, buttonStop, button_void;
-    private ArrayAdapter<CharSequence> categoriesAdapter;
 
     private BluetoothLeService blueService;
     private boolean serviceConnected;
@@ -67,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final int REQUEST_SCAN = 1;
     private static final int RC_SIGN_IN = 42;
-    private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
+
 
     //region lifecycle methods
 
@@ -83,23 +69,8 @@ public class MainActivity extends AppCompatActivity {
         startScan = (Button) findViewById(R.id.bt_pair);
         pairedDevice = (TextView) findViewById(R.id.tv_paired_device);
 
-        sessionText = (TextView) findViewById(R.id.tv_session);
         userText = (TextView) findViewById(R.id.tv_user);
-        dailyActivities = (Spinner) findViewById(R.id.sp_activity);
-        radioPosture = (RadioGroup) findViewById(R.id.rg_posture);
-        buttonStart = (FloatingActionButton) findViewById(R.id.ab_start);
-        buttonStop = (FloatingActionButton) findViewById(R.id.ab_stop);
-        button_void = (FloatingActionButton) findViewById(R.id.ab_cancel);
         buttonSign = (Button) findViewById(R.id.bt_signin);
-
-        categoriesAdapter = ArrayAdapter.createFromResource(this,
-                R.array.activity_categories_descriptors,
-                android.R.layout.simple_spinner_item);
-
-        // Specify the layout to use when the list of choices appears
-        categoriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
-        dailyActivities.setAdapter(categoriesAdapter);
 
         mAuth = FirebaseAuth.getInstance();
     }
@@ -126,20 +97,8 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
         }
 
-        boolean sessionStatus = sharedPref.getBoolean(getString(R.string.save_session_started), false);
-        setSessionStatus(sessionStatus);
-
-        int selectedActivityID = sharedPref.getInt(getString(R.string.save_activity), -1);
-        int selectedPostureID = sharedPref.getInt(getString(R.string.save_posture), -1);
-        if (selectedActivityID != -1) {
-            this.dailyActivities.setSelection(selectedActivityID);
-        }
-        if (selectedPostureID != -1) {
-            this.radioPosture.check(selectedPostureID);
-        }
-
         //FirebaseUser currentUser = mAuth.getCurrentUser();
-        signInAnonymously();
+        //signInAnonymously();
         updateLoginStatus();
     }
 
@@ -208,7 +167,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent_scan = new Intent(this, DeviceScanActivity.class);
         startActivityForResult(intent_scan, REQUEST_SCAN);
     }
-
 
 
     @Override
@@ -352,97 +310,6 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
 
-    //region daily activities saving
-
-    public void setSessionStatus(boolean started) {
-
-        if (started) {
-            buttonStop.setVisibility(View.VISIBLE);
-            buttonStart.setVisibility(View.INVISIBLE);
-            // button_void.setVisibility(View.VISIBLE);
-            sessionText.setText(getString(R.string.session_started));
-        } else {
-            buttonStop.setVisibility(View.INVISIBLE);
-            button_void.setVisibility(View.INVISIBLE);
-            buttonStart.setVisibility(View.VISIBLE);
-            sessionText.setText(getString(R.string.session_stopped));
-        }
-    }
-
-
-    // Listener registered for ab_start
-    public void startActivity(View view) {
-
-        // get selected activity from spinner
-        int selActivityID = dailyActivities.getSelectedItemPosition();
-        String selActivity = getResources().getStringArray(R.array.activity_categories_names)[selActivityID];
-
-        // get selected posture from radio button
-        String selPosture = "";
-        int selPostureID = radioPosture.getCheckedRadioButtonId();
-        switch(selPostureID){
-            case R.id.rb_liedown:
-                selPosture = "lie";
-                break;
-            case R.id.rb_sit:
-                selPosture = "sit";
-                break;
-            case R.id.rb_stand:
-                selPosture = "stand";
-                break;
-        }
-
-        DailyActivity activity = new DailyActivity(Event.TP_START, selActivity, selPosture , new Date());
-        saveActivity(activity);
-
-        saveSessionStatus(selActivityID, selPostureID);
-        setSessionStatus(true);
-        Toast.makeText(this, "Started: " + this.dailyActivities.getSelectedItem().toString(), Toast.LENGTH_LONG );
-    }
-
-
-    // Listener registered for ab_stop
-    public void stopActivity(View view) {
-        //TODO save date to session instead
-        DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
-        saveActivity(activity);
-
-        setSessionStatus(false);
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putBoolean(getString(R.string.save_session_started), false);
-        editor.commit();
-
-        Toast.makeText(this, "Finished activity",Toast.LENGTH_LONG );
-    }
-
-
-    private void saveSessionStatus(int activityID, int postureID) {
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putBoolean(getString(R.string.save_session_started), true);
-        editor.putInt(getString(R.string.save_activity), activityID);
-        editor.putInt(getString(R.string.save_posture), postureID);
-        editor.commit();
-    }
-
-
-    private void saveActivity(DailyActivity activity) {
-        String dt = formatActivityFilename.format(new Date());
-        String user = mAuth.getCurrentUser().getUid();
-        StringBuilder filename = new StringBuilder();
-        filename.append("act");
-        filename.append(dt);
-        //filename.append("_");
-        //filename.append(user);
-        filename.append(".csv");
-        ScratchFileWriter writer = new ScratchFileWriter(this, filename.toString());
-        writer.saveData(activity.toCSV());
-    }
-
-    //endregion
-
-
     //region firebase methods
 
 
@@ -515,4 +382,5 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 }

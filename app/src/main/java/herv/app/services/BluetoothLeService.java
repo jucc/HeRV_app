@@ -87,7 +87,7 @@ public class BluetoothLeService extends Service {
 
         String address = intent.getExtras().getString("address");
         String userID = intent.getExtras().getString("user");
-        Log.i(TAG, "Received start command with address " + address );
+        Log.i(TAG, "Received start command with address " + address + " and user " + userID);
 
         // If we get killed, after returning from here, restart
         if (!getConnectedState()) {
@@ -211,11 +211,15 @@ public class BluetoothLeService extends Service {
 
         // try to reconnect to a previously connected gatt server
         if (mBluetoothGatt != null) {
-            Log.i(TAG, "Trying to use an existing gatt server connection.");
+            Log.i(TAG, "Previously existing gatt connection");
+            // mBluetoothGatt.disconnect();
+            // mBluetoothGatt = null;
             if (mBluetoothGatt.connect()) {
+                Log.i(TAG, "Trying to use an existing gatt server connection.");
                 mConnectionState = STATE_CONNECTING;
                 return true;
             } else {
+                Log.i(TAG, "Existing connection lost");
                 mBluetoothGatt = null; // unable to reconnect, try to create a new connection
                 mConnectionState = STATE_DISCONNECTED;
                 return false;

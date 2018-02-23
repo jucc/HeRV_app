@@ -185,7 +185,7 @@ public class DeviceScanActivity extends ListActivity {
 
                 @Override
                 public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-                    Log.i(TAG, "received scan callback");
+                    Log.d(TAG, "received scan callback");
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
