@@ -126,7 +126,6 @@ public class RecordSessionFragment extends Fragment {
         });
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -151,17 +150,11 @@ public class RecordSessionFragment extends Fragment {
     }
 
     /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
+     * This interface must be implemented by activities that contain this fragment to allow
+     * an interaction in this fragment to be communicated
+     * http://developer.android.com/training/basics/fragments/communicating.html
      */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 
@@ -191,7 +184,6 @@ public class RecordSessionFragment extends Fragment {
         editor.putInt(getString(R.string.save_posture), postureID);
         editor.commit();
     }
-
 
 
     public void startActivity (View view){
@@ -252,5 +244,4 @@ public class RecordSessionFragment extends Fragment {
     }
 
     //endregion
-
 }
