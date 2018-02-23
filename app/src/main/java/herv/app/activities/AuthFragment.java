@@ -1,67 +1,72 @@
 package herv.app.activities;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.Arrays;
+import java.util.List;
 
 import herv.app.R;
+import herv.app.services.CloudFileWriter;
 
-
+/**
+ * Fragment for adding login/logout button and showing currently logged user
+ */
 public class AuthFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private TextView userText;
+    private Button buttonSign;
+
+    private CloudFileWriter cloud;
+    private FirebaseAuth mAuth;
 
     private OnFragmentInteractionListener mListener;
+
+    private static final int RC_SIGN_IN = 42;
+    private final static String TAG = MainActivity.class.getSimpleName();
+
 
     public AuthFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment AuthFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static AuthFragment newInstance(String param1, String param2) {
         AuthFragment fragment = new AuthFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_auth, container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -69,13 +74,34 @@ public class AuthFragment extends Fragment {
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        userText = (TextView) getActivity().findViewById(R.id.tv_user);
+        buttonSign = (Button) getActivity().findViewById(R.id.bt_signin);
+        mAuth = FirebaseAuth.getInstance();
+
+        buttonSign.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { sign(v); }
+        });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) signInAnonymously();
+        updateLoginStatus();
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+//        } else {
+//            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
         }
     }
 
@@ -85,18 +111,97 @@ public class AuthFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        // make sure its returning from user login flow managed by FirebaseUI
+        if (requestCode == RC_SIGN_IN) {
+            IdpResponse response = IdpResponse.fromResultIntent(data);
+            if (resultCode == Activity.RESULT_OK) {
+                updateLoginStatus();
+            } else {
+                // Sign in failed, check response for error code
+                // ...
+            }
+        }
+    }
+
     /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
+     * This interface must be implemented by activities that contain this fragment to allow
+     * an interaction in this fragment to be communicated
+     * http://developer.android.com/training/basics/fragments/communicating.html
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
+    //region authentication
+
+    // https://firebase.google.com/docs/auth/android/firebaseui
+    public void signin() {
+
+        // Choose authentication providers
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.Builder(AuthUI.EMAIL_PROVIDER).build(),
+                new AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build());
+
+        // Create and launch sign-in intent
+        Intent intentSign = AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .build();
+        startActivityForResult(intentSign, RC_SIGN_IN);
+    }
+
+
+    public void signout() {
+        AuthUI.getInstance().signOut(getActivity()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            public void onComplete(@NonNull Task<Void> task) {
+                updateLoginStatus();
+            }
+        });
+    }
+
+    public void sign(View view) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null || user.isAnonymous()) {signin();} else {signout();}
+    }
+
+    public void updateLoginStatus() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null || user.isAnonymous()) {
+            buttonSign.setText(R.string.common_signin_button_text);
+            userText.setText(R.string.no_user);
+        } else {
+            buttonSign.setText(R.string.signout);
+            userText.setText(user.getDisplayName() + "\n" + user.getUid());
+        }
+    }
+
+    public void sendToCloud(View view) {
+        int user = 0;
+        cloud = new CloudFileWriter();
+        int files = cloud.uploadFiles(user);
+        cloud = null;
+    }
+
+    private void signInAnonymously() {
+        mAuth.signInAnonymously().addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(TAG, "signInAnonymously:success");
+                    FirebaseUser user = mAuth.getCurrentUser();
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w(TAG, "signInAnonymously:failure", task.getException());
+                }
+            }
+        });
+    }
+
+    //endregion
 }

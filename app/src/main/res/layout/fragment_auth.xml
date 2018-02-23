@@ -1,13 +1,31 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="herv.app.activities.AuthFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+    <Button
+        android:id="@+id/bt_signin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/herv_light_red"
+        android:text="@string/common_signin_button_text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="16dp" />
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/tv_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_user"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@+id/bt_signin"
+        app:layout_constraintRight_toLeftOf="@+id/bt_signin"
+        android:layout_marginBottom="16dp"
+        android:layout_marginRight="16dp"
+        />
+
+</android.support.constraint.ConstraintLayout>

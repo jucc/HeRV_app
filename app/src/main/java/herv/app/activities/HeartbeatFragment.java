@@ -89,12 +89,12 @@ public class HeartbeatFragment extends Fragment {
         }
 
         startScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { scanDevices(v); }});
+            @Override public void onClick(View v) { scanDevices(v); }
+        });
 
         heartToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) { toggleHeartMonitor(v); }});
+            @Override public void onClick(View v) { toggleHeartMonitor(v); }
+        });
     }
 
     @Override

@@ -102,17 +102,11 @@ public class RecordSessionFragment extends Fragment {
         }
 
         buttonStart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(v);
-            }
+            @Override public void onClick(View v) { startActivity(v); }
         });
 
         buttonStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stopActivity(v);
-            }
+            @Override public void onClick(View v) { stopActivity(v);}
         });
     }
 
