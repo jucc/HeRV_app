@@ -24,18 +24,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import com.firebase.ui.auth.IdpResponse;
-
 import herv.app.R;
 import herv.app.services.BluetoothLeService;
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link HeartbeatFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link HeartbeatFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Fragment used for displaying heart rate and RR intervals,
+ * allowing the user to pair the sensor and turn on/off its connection
+ * TODO separation of concerns, should not be responsible for managing the service
+ * TODO also could be three different fragments (show HR, show RR and manage sensor)
  */
 public class HeartbeatFragment extends Fragment {
 
@@ -53,15 +49,12 @@ public class HeartbeatFragment extends Fragment {
     private final static String TAG = MainActivity.class.getSimpleName();
 
 
+    //region lifecycle
+
     public HeartbeatFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     * @return A new instance of fragment HeartbeatFragment.
-     */
     public static HeartbeatFragment newInstance(String param1, String param2) {
         HeartbeatFragment fragment = new HeartbeatFragment();
         return fragment;
@@ -110,11 +103,9 @@ public class HeartbeatFragment extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
 //        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
+//            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
         }
     }
-
 
     @Override
     public void onStart() {
@@ -153,19 +144,15 @@ public class HeartbeatFragment extends Fragment {
     }
 
     /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
+     * This interface must be implemented by activities that contain this fragment to allow
+     * an interaction in this fragment to be communicated
+     * http://developer.android.com/training/basics/fragments/communicating.html
      */
     public interface OnFragmentInteractionListener {
         void onFragmentInteraction(Uri uri);
     }
 
+    //endregion
 
     //region  service interaction
     // connects to service and receives broadcasts to show HR on screen
@@ -318,4 +305,5 @@ public class HeartbeatFragment extends Fragment {
     };
 
     //endregion
+
 }

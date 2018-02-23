@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 42;
 
 
-    //region lifecycle methods
+    //region lifecycle
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
     //endregion
 
-
-    //region firebase methods
+    //region authentication
 
     // https://firebase.google.com/docs/auth/android/firebaseui
     public void signin() {
@@ -154,5 +153,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    //endregion
 
 }

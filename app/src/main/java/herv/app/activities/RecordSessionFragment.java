@@ -27,12 +27,8 @@ import herv.app.model.Event;
 import herv.app.services.ScratchFileWriter;
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link RecordSessionFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link RecordSessionFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * Fragment used for input of user activity sessions
+ * TODO separation of concerns, should not be responsible for writing the files
  */
 public class RecordSessionFragment extends Fragment {
 
@@ -46,18 +42,13 @@ public class RecordSessionFragment extends Fragment {
 
     private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
 
+
     //region lifecycle
 
     public RecordSessionFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @return A new instance of fragment RecordSessionFragment.
-     */
     public static RecordSessionFragment newInstance(String param1, String param2) {
         RecordSessionFragment fragment = new RecordSessionFragment();
         Bundle args = new Bundle();
@@ -72,7 +63,6 @@ public class RecordSessionFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_record_session, container, false);
     }
 
@@ -138,8 +128,7 @@ public class RecordSessionFragment extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
 //        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
+//            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
         }
     }
 
