@@ -46,6 +46,8 @@ public class RecordSessionFragment extends Fragment {
 
     private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
 
+    //region lifecycle
+
     public RecordSessionFragment() {
         // Required empty public constructor
     }
@@ -95,11 +97,10 @@ public class RecordSessionFragment extends Fragment {
         dailyActivities.setAdapter(categoriesAdapter);
 
 
-
         SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
 
         boolean sessionStatus = sharedPref.getBoolean(getString(R.string.save_session_started), false);
-        setSessionStatus(sessionStatus);
+        setSessionStatusView(sessionStatus);
 
         int selectedActivityID = sharedPref.getInt(getString(R.string.save_activity), -1);
         int selectedPostureID = sharedPref.getInt(getString(R.string.save_posture), -1);
@@ -109,6 +110,20 @@ public class RecordSessionFragment extends Fragment {
         if (selectedPostureID != -1) {
             this.radioPosture.check(selectedPostureID);
         }
+
+        buttonStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(v);
+            }
+        });
+
+        buttonStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopActivity(v);
+            }
+        });
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -150,8 +165,11 @@ public class RecordSessionFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
+    //endregion
 
-    public void setSessionStatus(boolean started) {
+    //region session/activity recording
+
+    public void setSessionStatusView(boolean started) {
 
         if (started) {
             buttonStop.setVisibility(View.VISIBLE);
@@ -165,9 +183,18 @@ public class RecordSessionFragment extends Fragment {
     }
 
 
-    // Listener registered for ab_start
-    public void startActivity(View view) {
+    private void persistStartedSession(int activityID, int postureID) {
+        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(getString(R.string.save_session_started), true);
+        editor.putInt(getString(R.string.save_activity), activityID);
+        editor.putInt(getString(R.string.save_posture), postureID);
+        editor.commit();
+    }
 
+
+
+    public void startActivity (View view){
         // get selected activity from spinner
         int selActivityID = dailyActivities.getSelectedItemPosition();
         String selActivity = getResources().getStringArray(R.array.activity_categories_names)[selActivityID];
@@ -175,7 +202,7 @@ public class RecordSessionFragment extends Fragment {
         // get selected posture from radio button
         String selPosture = "";
         int selPostureID = radioPosture.getCheckedRadioButtonId();
-        switch(selPostureID){
+        switch (selPostureID) {
             case R.id.rb_liedown:
                 selPosture = "lie";
                 break;
@@ -187,14 +214,13 @@ public class RecordSessionFragment extends Fragment {
                 break;
         }
 
-        DailyActivity activity = new DailyActivity(Event.TP_START, selActivity, selPosture , new Date());
+        DailyActivity activity = new DailyActivity(Event.TP_START, selActivity, selPosture, new Date());
         saveActivity(activity);
 
-        saveSessionStatus(selActivityID, selPostureID);
-        setSessionStatus(true);
-        Toast.makeText(getActivity(), "Started: " + this.dailyActivities.getSelectedItem().toString(), Toast.LENGTH_LONG );
+        persistStartedSession(selActivityID, selPostureID);
+        setSessionStatusView(true);
+        Toast.makeText(getActivity(), "Started: " + this.dailyActivities.getSelectedItem().toString(), Toast.LENGTH_LONG);
     }
-
 
     // Listener registered for ab_stop
     public void stopActivity(View view) {
@@ -202,7 +228,7 @@ public class RecordSessionFragment extends Fragment {
         DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
         saveActivity(activity);
 
-        setSessionStatus(false);
+        setSessionStatusView(false);
         SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(getString(R.string.save_session_started), false);
@@ -212,19 +238,9 @@ public class RecordSessionFragment extends Fragment {
     }
 
 
-    private void saveSessionStatus(int activityID, int postureID) {
-        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putBoolean(getString(R.string.save_session_started), true);
-        editor.putInt(getString(R.string.save_activity), activityID);
-        editor.putInt(getString(R.string.save_posture), postureID);
-        editor.commit();
-    }
-
-
     private void saveActivity(DailyActivity activity) {
         String dt = formatActivityFilename.format(new Date());
-        //String user = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String user = FirebaseAuth.getInstance().getCurrentUser().getUid();
         StringBuilder filename = new StringBuilder();
         filename.append("act");
         filename.append(dt);

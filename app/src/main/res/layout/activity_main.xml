@@ -76,7 +76,9 @@
         android:layout_height="wrap_content"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_heartrate" />
+        app:layout_constraintTop_toBottomOf="@+id/tg_heart"
+        android:layout_marginTop="32dp"
+        />
 
 
     <!-- AUTHENTICATION -->
