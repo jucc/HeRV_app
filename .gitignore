@@ -1,5 +1,6 @@
-/build
-/.gradle
+build
+.gradle
+.idea
 local.properties
 
 *.dex
@@ -9,8 +10,3 @@ local.properties
 
 # Not yet sure about keeping the .idea folder
 # http://stackoverflow.com/questions/26336709/android-studio-should-the-entire-idea-directory-be-in-git-ignore
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/datasources.xml
-.idea/dataSources.ids
-.idea/libraries
