@@ -1,49 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    tools:context=".activities.MainActivity">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:id="@+id/activity_main_root_container"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:baselineAligned="false"
+              android:orientation="vertical" >
 
 
     <!-- HEART RATE MONITORING -->
 
     <fragment android:name="herv.app.activities.HeartbeatFragment"
         android:id="@+id/fg_heartbeat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="32dp"
-        />
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="30"
+    />
+
 
     <!-- SESSION/ACTIVITY LOG -->
 
-    <fragment android:name="herv.app.activities.RecordSessionFragment"
-        android:id="@+id/fg_record_session"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fg_heartbeat"
-        android:layout_marginTop="32dp"
-        />
+    <FrameLayout android:id="@+id/fg_session_container"
+                 android:layout_width="match_parent"
+                 android:layout_height="0dp"
+                 android:layout_weight="60"
+    />
+
 
     <!-- AUTHENTICATION -->
 
     <fragment android:name="herv.app.activities.AuthFragment"
         android:id="@+id/fg_auth"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fg_record_session"
-        android:layout_marginTop="32dp"
-        />
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="10"
+    />
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

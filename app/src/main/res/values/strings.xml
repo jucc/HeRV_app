@@ -12,12 +12,12 @@
     <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
 
     <string name="posture_lie">Lie down</string>
-    <string name="posture_sit"> Sit </string>
-    <string name="posture_stand"> Stand </string>
+    <string name="posture_sit">Sit</string>
+    <string name="posture_stand">Stand</string>
 
-    <string name="menu_scan"> Scan </string>
-    <string name="menu_stop"> Stop </string>
-    <string name="unknown_device"> Unknown device </string>
+    <string name="menu_scan">Scan</string>
+    <string name="menu_stop">Stop</string>
+    <string name="unknown_device">Unknown device</string>
 
 
     <string name="notification_running">Heart rate monitor running</string>
@@ -27,9 +27,11 @@
     <string name="no_device_paired">no device paired</string>
     <string name="pair_device">Pair device</string>
 
-    <string name="session">Activity session</string>
+    <string name="session">Daily Activity</string>
+    <string name="start_session">Start a new session</string>
     <string name="session_started">Activity started</string>
     <string name="session_stopped">Start new activity</string>
+    <string name="training">Training session</string>
 
     <string name="paired_device">paired</string>
     <string name="save_session_started">started</string>
