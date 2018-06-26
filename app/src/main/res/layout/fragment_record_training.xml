@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     tools:context="herv.app.activities.RecordSessionFragment">
 
+    <android.support.constraint.Guideline
+            android:id="@+id/guideline"
+            android:layout_width="1dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5"/>
+
     <TextView
             android:id="@+id/tv_session"
             android:layout_width="wrap_content"
@@ -14,9 +21,10 @@
             android:text="@string/training"
             android:textColor="@color/herv_light_red"
             android:textSize="18sp"
-            app:layout_constraintHorizontal_bias="0.126"
+            android:layout_marginLeft="16dp"
+            app:layout_constraintHorizontal_bias="0.2"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/guideline"
             app:layout_constraintTop_toTopOf="parent"/>
 
 
@@ -28,7 +36,7 @@
         app:fabSize="mini"
         app:backgroundTint="@color/herv_primary_red"
         android:visibility="visible"
-        app:layout_constraintLeft_toRightOf="@id/tv_session"
+        app:layout_constraintLeft_toRightOf="@+id/guideline"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintHorizontal_bias="0.3"
         app:layout_constraintTop_toTopOf="@id/tv_session"
@@ -43,7 +51,7 @@
             android:visibility="invisible"
             app:fabSize="mini"
             app:layout_constraintHorizontal_bias="0.7"
-            app:layout_constraintLeft_toRightOf="@id/tv_session"
+            app:layout_constraintLeft_toRightOf="@+id/guideline"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@id/tv_session"
             app:srcCompat="@android:drawable/ic_delete" />
@@ -51,54 +59,66 @@
 
     <TextView
             android:id="@+id/tv_1"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:inputType="textMultiLine"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:text="1"
-            android:textColor="@color/herv_light_red"
-            android:textSize="18sp"
-            app:layout_constraintHorizontal_bias="0.126"
+            android:textColor="@color/herv_light_grey"
+            android:textSize="14sp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            app:layout_constraintHorizontal_bias="0.2"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/guideline"
             app:layout_constraintTop_toBottomOf="@+id/tv_session"/>
 
 
     <TextView
             android:id="@+id/tv_2"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:inputType="textMultiLine"
             android:layout_height="wrap_content"
             android:text="2"
-            android:textColor="@color/herv_light_red"
-            android:textSize="18sp"
+            android:textColor="@color/herv_light_grey"
+            android:textSize="14sp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintLeft_toRightOf="@+id/tv_1"
+            app:layout_constraintLeft_toRightOf="@+id/guideline"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/tv_1"/>
 
 
     <TextView
             android:id="@+id/tv_3"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:inputType="textMultiLine"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:text="3"
-            android:textColor="@color/herv_light_red"
-            android:textSize="18sp"
-            app:layout_constraintHorizontal_bias="0.126"
+            android:textColor="@color/herv_light_grey"
+            android:textSize="14sp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            app:layout_constraintHorizontal_bias="0.2"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/guideline"
             app:layout_constraintTop_toBottomOf="@+id/tv_1"/>
 
 
     <TextView
             android:id="@+id/tv_4"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:inputType="textMultiLine"
             android:layout_height="wrap_content"
             android:text="4"
-            android:textColor="@color/herv_light_red"
-            android:textSize="18sp"
+            android:textColor="@color/herv_light_grey"
+            android:textSize="14sp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintLeft_toRightOf="@+id/tv_3"
+            app:layout_constraintLeft_toRightOf="@+id/guideline"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@+id/tv_3"/>
 

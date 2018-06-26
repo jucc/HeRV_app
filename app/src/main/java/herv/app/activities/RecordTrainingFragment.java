@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ public class RecordTrainingFragment extends Fragment {
     private TextView sessionText, textview1, textview2, textview3, textview4;
 
     private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
+    private final static String TAG = MainActivity.class.getSimpleName();
 
 
     //region lifecycle
@@ -70,10 +72,11 @@ public class RecordTrainingFragment extends Fragment {
         buttonStart = (FloatingActionButton) getActivity().findViewById(R.id.ab_start_train);
         buttonStop = (FloatingActionButton) getActivity().findViewById(R.id.ab_cancel_train);
 
-        switchViewNextStage();
+        //TODO user may have accidentaly rotated screen during session. Should check stage?
+        setStageView(0);
 
         buttonStart.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { switchViewNextStage(); }
+            @Override public void onClick(View v) { startStage(); }
         });
 
         buttonStop.setOnClickListener(new View.OnClickListener() {
@@ -108,40 +111,75 @@ public class RecordTrainingFragment extends Fragment {
 
     //endregion
 
-    //region training session flow management
+    //region training session flow management //TODO restructure this later.
+    // I have completely run out of time and know not what I am writing now
+    // Also, allow customization of number of repetitions of focus/breathe stages
 
-    public void switchViewNextStage() {
+    public void setStageView(Integer stage) {
 
-        //TODO restructure this later. I have completely run out of time and know not what I am writing now
-        // Also, allow customization of number of repetitions of focus/breathe stages
+        persistStartedSession(stage);
+
+        switch (stage) {
+            case 0: { //description
+                buttonStop.setVisibility(View.INVISIBLE);
+                buttonStart.setVisibility(View.VISIBLE);
+                sessionText.setText(getString(R.string.tr_description));
+                textview1.setText(getString(R.string.tr_description_1));
+                textview2.setText(getString(R.string.tr_description_2));
+                textview3.setText(getString(R.string.tr_description_3));
+                textview4.setText(getString(R.string.tr_description_4));
+                break;
+            }
+            case 1: { //baseline
+                buttonStop.setVisibility(View.VISIBLE);
+                buttonStart.setVisibility(View.INVISIBLE);
+                sessionText.setText(getString(R.string.tr_baseline));
+                textview1.setText(getString(R.string.tr_baseline_1));
+                textview2.setText(getString(R.string.tr_baseline_2));
+                textview3.setText(getString(R.string.tr_baseline_3));
+                textview4.setText(getString(R.string.tr_baseline_4));
+                break;
+            }
+            case 2:
+            case 4: { //focus
+                buttonStop.setVisibility(View.INVISIBLE);
+                buttonStart.setVisibility(View.VISIBLE);
+                break;
+            }
+            case 3:
+            case 5: { //breathe
+                buttonStop.setVisibility(View.INVISIBLE);
+                buttonStart.setVisibility(View.VISIBLE);
+                break;
+            }
+            default: {
+                Log.w(TAG, "Set stage view case statement with invalid option");
+            }
+        };
+    }
+
+    public void startStage() {
 
         Integer stage = getActivity().getPreferences(Context.MODE_PRIVATE)
-                                     .getInt(getString(R.string.training_stage), 0);
+                .getInt(getString(R.string.training_stage), 0);
 
         switch (stage) {
             case 0: { //description
                 startBaseline();
                 break;
             }
-            case 1: { //baseline
+            case 2:
+            case 4: { //focus
                 startFocus();
                 break;
             }
-            case 2: { //focus 1
+            case 3:
+            case 5: { //breathe 1
                 startBreathe();
                 break;
             }
-            case 3: { //breathe 1
-                startFocus();
-                break;
-            }
-            case 4: { //focus 2
-                startBreathe();
-                break;
-            }
-            case 5: { //breathe 2
-                startDescription();
-                break;
+            default: {
+                Log.w(TAG, "Start stage view case statement with invalid option");
             }
         };
     }
@@ -152,20 +190,15 @@ public class RecordTrainingFragment extends Fragment {
     }
 
 
-    private void startDescription(){
-
-        buttonStop.setVisibility(View.INVISIBLE);
-        buttonStart.setVisibility(View.VISIBLE);
-        sessionText.setText(getString(R.string.session_stopped));
-
-        persistStartedSession(0);
-    }
-
-
     public void startBaseline (){
-//
-//        DailyActivity activity = new DailyActivity(Event.TP_START, selActivity, selPosture, new Date());
-//        saveActivity(activity);
+
+        setStageView(1);
+
+        DailyActivity activity = new DailyActivity(0, Event.TP_START,
+                                                   getString(R.string.act_baseline),
+                                                   "sit",
+                                                   new Date());
+        saveActivity(activity);
 //
 //        buttonStop.setVisibility(View.INVISIBLE);
 //        buttonStart.setVisibility(View.VISIBLE);
@@ -177,10 +210,14 @@ public class RecordTrainingFragment extends Fragment {
     }
 
     public void startFocus (){
+        buttonStop.setVisibility(View.VISIBLE);
+        buttonStart.setVisibility(View.INVISIBLE);
         Toast.makeText(getActivity(), "Started focus", Toast.LENGTH_LONG);
     }
 
     public void startBreathe (){
+        buttonStop.setVisibility(View.VISIBLE);
+        buttonStart.setVisibility(View.INVISIBLE);
         Toast.makeText(getActivity(), "Started breathe", Toast.LENGTH_LONG);
     }
 
@@ -198,7 +235,6 @@ public class RecordTrainingFragment extends Fragment {
         DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
         saveActivity(activity);
 
-        switchViewNextStage();
         SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(getString(R.string.save_session_started), false);

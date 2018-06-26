@@ -42,17 +42,23 @@
     <string name="no_user"></string>
 
 
+    <string name="act_baseline">train-baseline</string>
+    <string name="act_focus">train-focus</string>
+    <string name="act_breathe">train-breathe</string>
+
     <!-- TEXTS USED TO GUIDE USER IN TRAINING SESSION -->
 
-    <string name="tr_description_1"> When you are ready to start your training sessions, press play. </string>
-    <string name="tr_description_2"> You will be presented with alternating sessions. </string>
-    <string name="tr_description_3"> If you are not able to complete the training sessions, you can cancel it and restart.</string>
+    <string name="tr_description"> Start training session </string>
+    <string name="tr_description_1"> When you are ready to start your training sessions, press play </string>
+    <string name="tr_description_2"> </string>
+    <string name="tr_description_3">  You will be presented with alternating sessions of focus and breathing</string>
     <string name="tr_description_4"> </string>
 
-    <string name="tr_baseline_1"> First, your baseline will be measured. </string>
-    <string name="tr_baseline_2"> Try to stay reasonably quiet for one minute. </string>
-    <string name="tr_baseline_3"> Please, do not control your breathing or focus. </string>
-    <string name="tr_baseline_4"> </string>
+    <string name="tr_baseline"> Baseline </string>
+    <string name="tr_baseline_1"> First, your baseline will be measured </string>
+    <string name="tr_baseline_2">  </string>
+    <string name="tr_baseline_3"> Try to stay reasonably quiet for one minute</string>
+    <string name="tr_baseline_4"> Please, do not control your breathing or focus </string>
 
     <string name="tr_focus_1"> Please, count backwards starting from the number: </string>
     <string name="tr_focus_2"> 3517 </string>
