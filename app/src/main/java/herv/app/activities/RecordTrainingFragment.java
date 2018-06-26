@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -19,7 +20,10 @@ import herv.app.model.Event;
 import herv.app.services.ScratchFileWriter;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Fragment used for input of user activity sessions
@@ -30,7 +34,7 @@ public class RecordTrainingFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
     private FloatingActionButton buttonStart, buttonStop;
-    private TextView sessionText, textview1, textview2, textview3, textview4;
+    private TextView sessionText, textview1, textview2, textview3, textview4, tvTime, tvCount;
 
     private static SimpleDateFormat formatActivityFilename = new SimpleDateFormat("yyMMdd");
     private final static String TAG = MainActivity.class.getSimpleName();
@@ -68,6 +72,9 @@ public class RecordTrainingFragment extends Fragment {
         textview2   = (TextView) getActivity().findViewById(R.id.tv_2);
         textview3   = (TextView) getActivity().findViewById(R.id.tv_3);
         textview4   = (TextView) getActivity().findViewById(R.id.tv_4);
+        tvTime   = (TextView) getActivity().findViewById(R.id.tv_time);
+        tvCount   = (TextView) getActivity().findViewById(R.id.tv_countdown);
+
 
         buttonStart = (FloatingActionButton) getActivity().findViewById(R.id.ab_start_train);
         buttonStop = (FloatingActionButton) getActivity().findViewById(R.id.ab_cancel_train);
@@ -123,33 +130,54 @@ public class RecordTrainingFragment extends Fragment {
             case 0: { //description
                 buttonStop.setVisibility(View.INVISIBLE);
                 buttonStart.setVisibility(View.VISIBLE);
+                tvTime.setVisibility(View.INVISIBLE);
+                tvCount.setVisibility(View.INVISIBLE);
                 sessionText.setText(getString(R.string.tr_description));
                 textview1.setText(getString(R.string.tr_description_1));
-                textview2.setText(getString(R.string.tr_description_2));
+                textview2.setText("");
                 textview3.setText(getString(R.string.tr_description_3));
-                textview4.setText(getString(R.string.tr_description_4));
+                textview4.setText("");
                 break;
             }
             case 1: { //baseline
-                buttonStop.setVisibility(View.VISIBLE);
+                buttonStop.setVisibility(View.INVISIBLE);
                 buttonStart.setVisibility(View.INVISIBLE);
+                tvTime.setVisibility(View.VISIBLE);
+                tvCount.setVisibility(View.VISIBLE);
                 sessionText.setText(getString(R.string.tr_baseline));
                 textview1.setText(getString(R.string.tr_baseline_1));
-                textview2.setText(getString(R.string.tr_baseline_2));
+                textview2.setText("");
                 textview3.setText(getString(R.string.tr_baseline_3));
                 textview4.setText(getString(R.string.tr_baseline_4));
                 break;
             }
             case 2:
-            case 4: { //focus
+            case 4:
                 buttonStop.setVisibility(View.INVISIBLE);
                 buttonStart.setVisibility(View.VISIBLE);
+                tvTime.setVisibility(View.INVISIBLE);
+                tvCount.setVisibility(View.INVISIBLE);
+                sessionText.setText(getString(R.string.tr_focus));
+                textview1.setText(getString(R.string.tr_focus_pre_1));
+                textview2.setText("");
+                textview3.setText(getString(R.string.tr_focus_pre_3));
+                textview4.setText("");
                 break;
-            }
             case 3:
             case 5: { //breathe
                 buttonStop.setVisibility(View.INVISIBLE);
                 buttonStart.setVisibility(View.VISIBLE);
+                tvTime.setVisibility(View.INVISIBLE);
+                tvCount.setVisibility(View.INVISIBLE);
+                sessionText.setText(getString(R.string.tr_breathe));
+                textview1.setText(getString(R.string.tr_breathe_1));
+                textview2.setText(getString(R.string.tr_breathe_2));
+                textview3.setText(getString(R.string.tr_breathe_3));
+                textview4.setText("");
+                break;
+            }
+            case 6: {
+                setStageView(0);
                 break;
             }
             default: {
@@ -170,12 +198,12 @@ public class RecordTrainingFragment extends Fragment {
             }
             case 2:
             case 4: { //focus
-                startFocus();
+                startFocus(stage);
                 break;
             }
             case 3:
             case 5: { //breathe 1
-                startBreathe();
+                startBreathe(stage);
                 break;
             }
             default: {
@@ -193,36 +221,51 @@ public class RecordTrainingFragment extends Fragment {
     public void startBaseline (){
 
         setStageView(1);
-
-        DailyActivity activity = new DailyActivity(0, Event.TP_START,
-                                                   getString(R.string.act_baseline),
-                                                   "sit",
-                                                   new Date());
-        saveActivity(activity);
-//
-//        buttonStop.setVisibility(View.INVISIBLE);
-//        buttonStart.setVisibility(View.VISIBLE);
-//        sessionText.setText(getString(R.string.session_stopped));
-//
-//        persistStartedSession(selActivityID, selPostureID);
-//        switchViewNextStage(true);
-        Toast.makeText(getActivity(), "Started baseline", Toast.LENGTH_LONG);
+        saveActivity(activity_st(getString(R.string.act_baseline)));
+        startCountdown(80, 2);
     }
 
-    public void startFocus (){
-        buttonStop.setVisibility(View.VISIBLE);
+    public void startFocus (final Integer stage){
+        Integer decrement = stage == 2? 7 : 13;
+        Integer countStart = new Random().nextInt(3000) + 3000;
+        buttonStop.setVisibility(View.INVISIBLE);
         buttonStart.setVisibility(View.INVISIBLE);
-        Toast.makeText(getActivity(), "Started focus", Toast.LENGTH_LONG);
+        tvTime.setVisibility(View.VISIBLE);
+        tvCount.setVisibility(View.VISIBLE);
+        textview1.setText(getString(R.string.tr_focus_1));
+        textview2.setText("" + countStart);
+        textview3.setText(getString(R.string.tr_focus_3));
+        textview4.setText("" + decrement);
+        saveActivity(activity_st(getString(R.string.act_focus)));
+        startCountdown(80, stage+1);
     }
 
-    public void startBreathe (){
-        buttonStop.setVisibility(View.VISIBLE);
+    public void startBreathe (Integer stage){
+        buttonStop.setVisibility(View.INVISIBLE);
         buttonStart.setVisibility(View.INVISIBLE);
-        Toast.makeText(getActivity(), "Started breathe", Toast.LENGTH_LONG);
+        tvTime.setVisibility(View.VISIBLE);
+        tvCount.setVisibility(View.VISIBLE);
+        saveActivity(activity_st(getString(R.string.act_breathe)));
+        startCountdown(80, stage+1);
     }
 
     private void cancel() {
         Toast.makeText(getActivity(), "Cancel", Toast.LENGTH_LONG);
+    }
+
+    private void startCountdown(int seconds, final int nextStage) {
+        new CountDownTimer(seconds * 1000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                tvCount.setText(" " + millisUntilFinished / 1000);
+            }
+
+            public void onFinish() {
+                Toast.makeText(getActivity(), "Finished baseline", Toast.LENGTH_LONG);
+                stopActivity();
+                setStageView(nextStage);
+            }
+        }.start();
     }
 
     //endregion
@@ -230,7 +273,7 @@ public class RecordTrainingFragment extends Fragment {
     // region record TODO create reusable methods to share with RecordSession
 
     // Listener registered for ab_stop
-    public void stopActivity(View view) {
+    public void stopActivity() {
         //TODO save date to session instead
         DailyActivity activity = new DailyActivity(Event.TP_STOP, "", "", new Date());
         saveActivity(activity);
@@ -243,6 +286,9 @@ public class RecordTrainingFragment extends Fragment {
         Toast.makeText(getActivity(), "Finished activity",Toast.LENGTH_LONG );
     }
 
+    private DailyActivity activity_st(String activity_name) {
+        return new DailyActivity(0, Event.TP_START, activity_name, "sit", new Date());
+    }
 
     private void saveActivity(DailyActivity activity) {
         String dt = formatActivityFilename.format(new Date());

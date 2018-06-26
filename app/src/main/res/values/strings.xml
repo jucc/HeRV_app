@@ -48,27 +48,27 @@
 
     <!-- TEXTS USED TO GUIDE USER IN TRAINING SESSION -->
 
+    <string name="training_stage">train-stage</string>
+
     <string name="tr_description"> Start training session </string>
     <string name="tr_description_1"> When you are ready to start your training sessions, press play </string>
-    <string name="tr_description_2"> </string>
     <string name="tr_description_3">  You will be presented with alternating sessions of focus and breathing</string>
-    <string name="tr_description_4"> </string>
 
     <string name="tr_baseline"> Baseline </string>
     <string name="tr_baseline_1"> First, your baseline will be measured </string>
-    <string name="tr_baseline_2">  </string>
     <string name="tr_baseline_3"> Try to stay reasonably quiet for one minute</string>
     <string name="tr_baseline_4"> Please, do not control your breathing or focus </string>
 
-    <string name="tr_focus_1"> Please, count backwards starting from the number: </string>
-    <string name="tr_focus_2"> 3517 </string>
-    <string name="tr_focus_3"> with decrements of: </string>
-    <string name="tr_focus_4"> </string>
+    <string name="tr_focus"> Focus task </string>
+    <string name="tr_focus_pre_1"> Now, you will count backwards with fixed decrements to test and improve focus </string>
+    <string name="tr_focus_pre_3"> Press play when you are ready and you will see the starting number and decrement </string>
+    <string name="tr_focus_1"> Count backwards starting from </string>
+    <string name="tr_focus_3"> with decrements of </string>
 
+    <string name="tr_breathe"> Breathing task </string>
     <string name="tr_breathe_1"> Now, try to focus only on your respiration </string>
-    <string name="tr_breathe_2">  </string>
-    <string name="tr_breathe_3"> Inhale and exhale slowly </string>
-    <string name="tr_breathe_4"> </string>
-    <string name="training_stage">0</string>
+    <string name="tr_breathe_2"> Inhale and exhale at regular intervals </string>
+    <string name="tr_breathe_3"> You can use the countdown below to inhale and exhale in 5s intervals </string>
+    <string name="tr_breathe_4"> When you are ready, press start </string>
 
 </resources>
