@@ -213,8 +213,6 @@ public class RecordSessionFragment extends Fragment {
         StringBuilder filename = new StringBuilder();
         filename.append("act");
         filename.append(dt);
-        //filename.append("_");
-        //filename.append(user);
         filename.append(".csv");
         ScratchFileWriter writer = new ScratchFileWriter(getActivity(), filename.toString());
         writer.saveData(activity.toCSV());

@@ -39,14 +39,20 @@ public class MainActivity extends AppCompatActivity
     public void onFragmentInteraction(String type) {
         switch (type){
             case "daily": {
-                Fragment newFragment = new RecordSessionFragment();
+                RecordSessionFragment newFragment = new RecordSessionFragment();
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.fg_session_container, newFragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
+                break;
             }
-            case "session": {
-
+            case "training": {
+                Fragment newFragment = new RecordTrainingFragment();
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.fg_session_container, newFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                break;
             }
             default: {
                 // just stay where it is

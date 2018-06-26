@@ -41,7 +41,28 @@
     <string name="signout">Sign out</string>
     <string name="no_user"></string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- TEXTS USED TO GUIDE USER IN TRAINING SESSION -->
+
+    <string name="tr_description_1"> When you are ready to start your training sessions, press play. </string>
+    <string name="tr_description_2"> You will be presented with alternating sessions. </string>
+    <string name="tr_description_3"> If you are not able to complete the training sessions, you can cancel it and restart.</string>
+    <string name="tr_description_4"> </string>
+
+    <string name="tr_baseline_1"> First, your baseline will be measured. </string>
+    <string name="tr_baseline_2"> Try to stay reasonably quiet for one minute. </string>
+    <string name="tr_baseline_3"> Please, do not control your breathing or focus. </string>
+    <string name="tr_baseline_4"> </string>
+
+    <string name="tr_focus_1"> Please, count backwards starting from the number: </string>
+    <string name="tr_focus_2"> 3517 </string>
+    <string name="tr_focus_3"> with decrements of: </string>
+    <string name="tr_focus_4"> </string>
+
+    <string name="tr_breathe_1"> Now, try to focus only on your respiration </string>
+    <string name="tr_breathe_2">  </string>
+    <string name="tr_breathe_3"> Inhale and exhale slowly </string>
+    <string name="tr_breathe_4"> </string>
+    <string name="training_stage">0</string>
 
 </resources>
