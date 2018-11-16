@@ -6,7 +6,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-
 import herv.app.R;
 
 public class MainActivity extends AppCompatActivity
